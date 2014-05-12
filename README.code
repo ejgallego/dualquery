@@ -1,0 +1,55 @@
+Build instructions
+==============
+
+dualquery requires OCaml, findlib, and a unix system to build.
+
+It is highly recommended to use a 64 bits machine, as 32bit OCaml will
+crash on arrays larger than 2 million entries.
+
+To build dualquery, first configure parmap:
+
+$ cd parmap
+$ ./configure
+$ cd ..
+
+then, make should do the job:
+
+$ make
+
+you should have a rundq executable.
+
+Running dualquery
+==============
+
+dualquery requires an optimizing constraint solver.
+
+In this release we support CPlex 12.5.1.
+
+1.- Edit the file "cplex" and make sure that it points to where your
+    cplex executable is.
+
+2.- You can adjust the cplex parameters in the cplex.ml file.
+    Typical parameters are:
+
+set workmem 11000
+set mip strategy file 2
+
+3.- You should be ready to go.
+
+    The file rundq.ml call the actual experiment. You can use the
+    experiments and helpers in icml.ml as a guide.
+
+    You should setup the relevant data and qcache files.
+
+    Call the applications as follows:
+
+    ./rundq | tee dq-run.log
+
+    You should get a rundq-$DATE directory with the results of the
+    experiment.
+
+4.- You can generate some plots [Experimental, gnuplot required]
+
+$ ./plot-histo qerror
+$ ./plot-histo rerror
+$ ./plot-histo qresult

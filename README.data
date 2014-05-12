@@ -1,0 +1,40 @@
+We distribute with our prototype the following datasets form Machine
+Learning repository archive, http://archive.ics.uci.edu/ml/:
+
+- adult: http://archive.ics.uci.edu/ml/datasets/Adult
+- census: http://archive.ics.uci.edu/ml/datasets/Census+Income
+- forestcover: http://archive.ics.uci.edu/ml/datasets/Covertype
+- kdd99: http://archive.ics.uci.edu/ml/datasets/KDD+Cup+1999+Data
+- tic-tac-toe: http://archive.ics.uci.edu/ml/datasets/Tic-Tac-Toe+Endgame
+
+The mcsherry-adult.txt dataset is the version of adult used in the
+MWEM paper.
+
+The datasets are under data/compressed.
+
+Please uncompress the data files before running dualquery and more the
+$DATA.clean files to the top-level data directory.
+
+We have pre-processed the datasets to discretize continuous attributes
+and to normalize discrete attributes into a 0..N integer represenation
+using the encode.pl script.
+
+Netflix data:
+============
+
+The Nexflix prize data set is no longer re-distributable.
+
+If you have it, you can use the netflix-parser utility that we ship to
+produce an input dataset in a format our tool understands.
+
+netflix-parser produces a binary dataset where each row represents a
+user and each column a movie, which is set to 1 if the user watched
+that particular movie.
+
+Query cache:
+===========
+
+The actual queries used along with their evaluations can be found in
+the qcache/ directory.
+
+Please uncompress the query cache files before running dualquery.

@@ -1,0 +1,5 @@
+This tool expects to be called from a directory where the nextflix
+directory training_set/ exists and contains all the proper files.
+
+It will output to stdout one line per user, where each line contains
+a list of movies that the user has watched.
