@@ -56,8 +56,13 @@ let ev_bquery idx q = float_of_bool (
 
 (* (normalized) Number of elements that satisfy q *)
 let eval_bquery dist q =
+  (* EG: We could cache the ev_bquery idx q value, but it wouldn't
+     really made a difference *)
   Util.foldi_left (fun idx res prob ->
     (ev_bquery idx q *. prob) +. res  ) 0.0 dist
+
+let eval_bqueries dist ql =
+  Array.map (eval_bquery dist) ql
 
 (* Convert a database to its histogram *)
 let to_dist dbi db =

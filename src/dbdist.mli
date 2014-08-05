@@ -14,7 +14,8 @@ type db_dist = float array
 (* Convert a database to its histogram *)
 val to_dist : db_info -> bin_db -> db_dist
 
-(* Normalized result for the evalution of a query *)
-val eval_bquery : db_dist -> bin_query -> float
+(* [Normalized] results for the evalution of queries *)
+val eval_bquery   : db_dist -> bin_query       -> float
+val eval_bqueries : db_dist -> bin_query array -> float array
 
 val print_db : out_channel -> db_dist -> unit

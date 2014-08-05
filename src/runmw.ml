@@ -6,10 +6,10 @@
 *)
 
 open Db
-open Dbdist
 open Support
 
 (* module D = Data *)
+module DbD = Dbdist
 module Q = Query
 
 let mk_rbias_dist elem atts nqry =
@@ -18,11 +18,11 @@ let mk_rbias_dist elem atts nqry =
                  db_att     = atts;
                  db_bin_att = atts;
                  db_elem    = elem; }             in
-  let udist  = to_dist dbinfo db                  in
+  let udist  = DbD.to_dist dbinfo db              in
 
-  let qry     = Q.generate_bqueries  atts nqry     in
-  let qcache  = Q.eval_bqueries_norm true db qry   in
-  let qdcache = Array.map (eval_bquery udist) qry  in
+  let qry     = Q.generate_bqueries  atts nqry    in
+  let qcache  = Q.eval_bqueries_norm true db qry  in
+  let qdcache = DbD.eval_bqueries udist qry       in
 
   let open Printf in
   (* Compare the result *)
