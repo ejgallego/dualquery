@@ -15,6 +15,6 @@ type db_dist = float array
 val to_dist : db_info -> bin_db -> db_dist
 
 (* Normalized result for the evalution of a query *)
-val eval_query : bin_query -> db_dist -> float
+val eval_bquery : db_dist -> bin_query -> float
 
 val print_db : out_channel -> db_dist -> unit

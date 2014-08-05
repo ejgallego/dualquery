@@ -9,7 +9,7 @@ open Db
 open Dbdist
 open Support
 
-module D = Data
+(* module D = Data *)
 module Q = Query
 
 let mk_rbias_dist elem atts nqry =
@@ -19,10 +19,20 @@ let mk_rbias_dist elem atts nqry =
                  db_bin_att = atts;
                  db_elem    = elem; }             in
   let udist  = to_dist dbinfo db                  in
+
+  let qry     = Q.generate_bqueries  atts nqry     in
+  let qcache  = Q.eval_bqueries_norm true db qry   in
+  let qdcache = Array.map (eval_bquery udist) qry  in
+
+  let open Printf in
+  (* Compare the result *)
+  printf "Old eval:\n";
+  Array.iter (printf "%f\n") qcache;
+  printf "\n\nNew eval:\n";
+  Array.iter (printf "%f\n") qdcache;
+
   udist
 
-    (* let qry      = Q.generate_bqueries     atts nqry       in *)
-    (* let qcache   = Q.eval_bqueries_norm true db qry        in *)
     (* let c_qry    = Q.complement_bqueries qry               in *)
     (* let c_qcache = Q.complement_qcache   qcache            in *)
     (* { *)
@@ -38,9 +48,9 @@ let main () =
   (* Call the actual experiment below *)
   (* 20000 elem, 10 atts, 10000 queries *)
 
-  let udist = mk_rbias_dist 20000 10 10000 in
+  let udist = mk_rbias_dist 20000 5 20 in
 
-  print_db stdout udist;
+  (* print_db stdout udist; *)
   ()
 
 let res =
