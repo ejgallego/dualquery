@@ -30,8 +30,8 @@ clean::
 	rm -f cplex_dq.lp
 	rm -f cplex.cfg
 	rm -f *.log
-	rm -f rundq
-	rm -f ./$(DQ)
+	rm -f rundq runmw
+	rm -f ./$(DQ) ./$(MW)
 	$(OCAMLBUILD) -clean
 
 clean-cplex::
