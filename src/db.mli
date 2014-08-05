@@ -11,7 +11,7 @@ open Attribute
 
 (* A db schema is a list of attributes *)
 type db_schema = att_info array
-type att_map   = (int * int)  array
+type att_map   = (int * int) array
 
 (* Information about the database *)
 type db_info = {

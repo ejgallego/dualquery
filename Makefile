@@ -1,5 +1,6 @@
 # Program main file
 DQ=src/rundq
+MW=src/runmw
 
 # Ocamlbuild
 # Little bit of a hack for the inline
@@ -7,33 +8,22 @@ OCBOPTS=-tag native -cflags -unsafe,-I,../parmap/_build -lflags -unsafe,-I,../pa
 # OCAMLBUILD=ocamlbuild $(OCBOPTS)
 OCAMLBUILD=ocamlbuild -classic-display $(OCBOPTS)
 
-.PHONY: rundq clean clean-cplex rundq.byte rundq.native rundq.d.byte rundq.d.native
+.PHONY: rundq runmw clean clean-cplex
 
 VERSION=native
 
-all: rundq
+all: rundq runmw
 
 parmap::
 	make -C parmap
 
-rundq: rundq.$(VERSION)
+rundq: parmap
+	$(OCAMLBUILD) $(DQ).$(VERSION)
 	cp rundq.$(VERSION) rundq
 
-
-rundq.byte: parmap
-	$(OCAMLBUILD) $(DQ).byte
-
-rundq.native: parmap
-	$(OCAMLBUILD) $(DQ).native
-
-rundq.p.byte: parmap
-	$(OCAMLBUILD) $(DQ).p.byte
-
-rundq.d.byte: parmap
-	$(OCAMLBUILD) $(DQ).d.byte
-
-rundq.p.native: parmap
-	$(OCAMLBUILD) $(DQ).p.native
+runmw: parmap
+	$(OCAMLBUILD) $(MW).$(VERSION)
+	cp runmw.$(VERSION) runmw
 
 clean::
 	make -C parmap clean

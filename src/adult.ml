@@ -10,25 +10,25 @@ open Attribute
 open List
 open Str
 
-let parsing_schema = [|
-  (*         name           min max    def step *)
-  mk_int_att "age"            0 100     10 20;
-  mk_int_att "workclass"      0 7        0  8;
-  mk_int_att "fnlwgt"         0 1600000  0 20;
-  mk_int_att "education"      0 15       0 16;
-  mk_int_att "ed_num"         0 100      0 10;
+let parsing_schema =
+  (*            name           min max    def step *)
+  [| mk_int_att "age"            0 100     10 20;
+     mk_int_att "workclass"      0 7        0  8;
+     mk_int_att "fnlwgt"         0 1600000  0 20;
+     mk_int_att "education"      0 15       0 16;
+     mk_int_att "ed_num"         0 100      0 10;
 
-  mk_int_att "marital_status" 0 6        0  7;
-  mk_int_att "occupation"     0 13       0 14;
-  mk_int_att "relationship"   0 5        0 60;
-  mk_int_att "race"           0 4        0  5;
-  mk_int_att "sex"            0 1        0  2;
-  mk_int_att "capital_gain"   0 100000   0 10;
-  mk_int_att "capital_loss"   0 5000     0 10;
-  mk_int_att "hours_per_week" 0 100      0 10;
-  mk_int_att "native_country" 0 40       0 41;
-  mk_int_att "income"         0 1        0  2;
-		     |]
+     mk_int_att "marital_status" 0 6        0  7;
+     mk_int_att "occupation"     0 13       0 14;
+     mk_int_att "relationship"   0 5        0 60;
+     mk_int_att "race"           0 4        0  5;
+     mk_int_att "sex"            0 1        0  2;
+     mk_int_att "capital_gain"   0 100000   0 10;
+     mk_int_att "capital_loss"   0 5000     0 10;
+     mk_int_att "hours_per_week" 0 100      0 10;
+     mk_int_att "native_country" 0 40       0 41;
+     mk_int_att "income"         0 1        0  2;
+  |]
 
 let schema = Array.map gen_att_info parsing_schema
 
