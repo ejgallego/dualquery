@@ -7,38 +7,36 @@
 
 open Db
 open Support
+open Mwem
 
 (* module D = Data *)
 module DbD = Dbdist
 module Q = Query
 
-let mk_rbias_dist elem atts nqry =
+let mk_rbias_data elem atts nqry =
   let db     = generate_bin_db_bias atts elem     in
   let dbinfo = { db_name    = "ran_bias";
                  db_att     = atts;
                  db_bin_att = atts;
                  db_elem    = elem; }             in
-  let udist  = DbD.to_dist dbinfo db              in
+
+  (* let udist  = DbD.to_dist dbinfo db              in *)
+  (* let qdcache = DbD.eval_bqueries udist qry       in *)
+  (* let open Printf in *)
+  (* (\* Compare the result *\) *)
+  (* printf "Old eval:\n"; *)
+  (* Array.iter (printf "%f\n") qcache; *)
+  (* printf "\n\nNew eval:\n"; *)
+  (* Array.iter (printf "%f\n") qdcache; *)
 
   let qry     = Q.generate_bqueries  atts nqry    in
   let qcache  = Q.eval_bqueries_norm true db qry  in
-  let qdcache = DbD.eval_bqueries udist qry       in
 
-  let open Printf in
-  (* Compare the result *)
-  printf "Old eval:\n";
-  Array.iter (printf "%f\n") qcache;
-  printf "\n\nNew eval:\n";
-  Array.iter (printf "%f\n") qdcache;
 
-  udist
-
-    (* let c_qry    = Q.complement_bqueries qry               in *)
-    (* let c_qcache = Q.complement_qcache   qcache            in *)
-    (* { *)
-    (*   sd_queries = c_qry; *)
-    (*   sd_qcache  = c_qcache; *)
-    (* } *)
+  { sd_info    = dbinfo;
+    sd_queries = qry;
+    sd_qcache  = qcache;
+  }
 
 
 let main () =
@@ -48,9 +46,17 @@ let main () =
   (* Call the actual experiment below *)
   (* 20000 elem, 10 atts, 10000 queries *)
 
-  let udist = mk_rbias_dist 20000 5 20 in
+  let edata  = mk_rbias_data 200 6 20                 in
+  let eparam = { exp_eps = 100.0; exp_steps = 200; }  in
+  let res    = mwem edata eparam                      in
 
-  (* print_db stdout udist; *)
+  let open Printf in
+  printf "Real eval:\n";
+  Array.iteri (printf "%d: %f\n") edata.sd_qcache;
+
+  printf "\n\nNew eval:\n";
+  let rqry = DbD.eval_bqueries res edata.sd_queries  in
+  Array.iteri (printf "%d: %f\n") rqry;
   ()
 
 let res =

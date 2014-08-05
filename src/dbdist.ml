@@ -59,10 +59,13 @@ let eval_bquery dist q =
   (* EG: We could cache the ev_bquery idx q value, but it wouldn't
      really made a difference *)
   Util.foldi_left (fun idx res prob ->
-    (ev_bquery idx q *. prob) +. res  ) 0.0 dist
+    (ev_bquery idx q *. prob) +. res) 0.0 dist
 
 let eval_bqueries dist ql =
   Array.map (eval_bquery dist) ql
+
+let uniform_dist n =
+  Array.make n (1.0 /. (float_of_int n))
 
 (* Convert a database to its histogram *)
 let to_dist dbi db =
@@ -82,6 +85,12 @@ let to_dist dbi db =
   let felem = float_of_int dbi.db_elem in
   Array.map (fun n -> n /. felem
   ) newdb
+
+let d_sum d = Array.fold_left (+.) 0.0 d
+
+let d_norm d =
+    let asum = d_sum d in
+    Util.mapi_in_place (fun _ -> fun v -> v /. asum) d
 
 let print_db out db =
   (* We don't want the header I guess *)
