@@ -46,7 +46,7 @@ let main () =
   (* Call the actual experiment below *)
   (* 20000 elem, 10 atts, 10000 queries *)
 
-  let edata  = mk_rbias_data 200 6 20                 in
+  let edata  = mk_rbias_data 30000 12 100             in
   let eparam = { exp_eps = 100.0; exp_steps = 200; }  in
   let res    = mwem edata eparam                      in
 
@@ -67,6 +67,7 @@ let main () =
   iteri (printf "%d: %f\n") error;
 
   printf "\nAvg Error: %f\n" (avg error);
+  printf "\nAvg Max: %f\n"   (max error);
   ()
 
 let res =
