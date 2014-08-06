@@ -16,6 +16,7 @@ type query_source = db_schema -> (string * query array)
 val network   : data_source
 val network_s : data_source
 val adult     : data_source
+val adult_red : data_source
 val tictactoe : data_source
 val ttt_bin   : data_source
 

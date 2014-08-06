@@ -36,7 +36,7 @@ open Expm
 open Mw
 
 (* val mwem : exp_data -> exp_param -> exp_result *)
-let mwem data param =
+let mwem data param init =
   let open Printf in
   printf "Starting!\n%!";
 
@@ -54,10 +54,10 @@ let mwem data param =
   let nqry    = Array.length qry                   in
 
   (* Universe size *)
-  let usize   = Util.pow 2 data.sd_info.db_bin_att in
+  (* let usize   = Util.pow 2 data.sd_info.db_bin_att in *)
 
   (* Initial dist *)
-  let d       = uniform_dist usize                 in
+  let d       = init                               in
 
   (* Unused accumulator *)
   (* let avg     = uniform_dist usize                 in *)
@@ -117,8 +117,9 @@ let mwem data param =
       v *. up_factor
     in
 
-    (* Arbitrary *)
-    for k = 1 to 2 do
+    (* Arbitrary! *)
+    let k_l = 20 in
+    for k = 1 to k_l do
       Util.mapi_in_place mw_update d;
       d_norm_in_place d
     done;

@@ -33,4 +33,4 @@ type exp_result = {
 *)
 
 (* val mwem : exp_data -> exp_param -> exp_result *)
-val mwem : exp_data -> exp_param -> db_dist
+val mwem : exp_data -> exp_param -> db_dist -> db_dist

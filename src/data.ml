@@ -19,7 +19,9 @@ type query_source = db_schema -> (string * query array)
 let network     = ("network",   Network.schema,   Network.read_db   "data/kdd99.clean")
 let network_s   = ("network",   Network.schema,   Network.read_db   "data/kdd99-small.clean")
 
-let adult       = ("adult",     Adult.schema,     Adult.read_db     "data/adult.clean")
+let adult       = ("adult",     Adult.schema,     Adult.read_db Adult.parsing_schema "data/adult.clean")
+
+let adult_red   = ("adult",     Adult.schema_reduced, Adult.read_db Adult.parsing_schema_reduced "data/adult.clean")
 
 let tictactoe   = ("tictactoe", Tictactoe.schema, Tictactoe.read_db "data/tic-tac-toe.data")
 let ttt_bin     = ("tt_bin",    Ttt_bin.schema,   Ttt_bin.read_db   "data/tic-tac-toe.data")

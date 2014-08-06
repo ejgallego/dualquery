@@ -38,6 +38,21 @@ let mk_rbias_data elem atts nqry =
     sd_qcache  = qcache;
   }
 
+let mk_adult_data nqry =
+  let (ndb, db_schema, db)    = Data.adult_red                    in
+  let db                      = db     ()                         in
+  let att_map                 = build_att_map db_schema           in
+  let dbinfo                  = mk_db_info ndb db att_map         in
+  let qry                     = Q.generate_queries db_schema nqry in
+  let qcache                  = Q.eval_queries_norm true db qry   in
+  let b_qry                   = Q.to_bin_queries att_map qry      in
+  Printf.printf "Adult dataset: Elem: %d, Attr %d, Qrys: %d\n%!" (get_db_elem db) dbinfo.db_bin_att nqry;
+  {
+    sd_info    = dbinfo;
+    sd_queries = b_qry;
+    sd_qcache  = qcache;
+  }
+
 (* Information about the error in a run *)
 type exp_error = {
   err_avg     : float;
@@ -71,13 +86,23 @@ let do_exp n data param =
 
   let open Printf in
 
+  (* Initial distribution *)
   let exps = Array.init n (fun idx ->
-    let dist = mwem data param                        in
-    let rqry = DbD.eval_bqueries dist data.sd_queries in
-    let res  = analyze_error data.sd_qcache rqry      in
+
+    (* Init code, we could initialize in a different way *)
+    let usize   = Util.pow 2 data.sd_info.db_bin_att     in
+    let init    = DbD.uniform_dist usize                 in
+
+    let iqry    = DbD.eval_bqueries init data.sd_queries in
+    let ires    = analyze_error data.sd_qcache iqry      in
+    printf "\nInitial Avg/Max Error: %f/%f\n" ires.err_avg ires.err_max;
+
+    let dist = mwem data param init                      in
+    let rqry = DbD.eval_bqueries dist data.sd_queries    in
+    let res  = analyze_error data.sd_qcache rqry         in
     printf "\nAvg/Max Error: %f/%f\n" res.err_avg res.err_max;
     res
-  ) in
+  )                                                      in
   let res = average_exp exps in
   printf "\nAvg/Max Error: %f/%f\n" res.err_avg res.err_max
 
@@ -86,11 +111,17 @@ let do_rbias_exp () =
   let param = { exp_eps = 1.0; exp_steps = 10; }   in
   do_exp 2 data param
 
+let do_adult_exp () =
+  let data  = mk_adult_data 500                    in
+  let param = { exp_eps = 1.0; exp_steps = 20; }   in
+  do_exp 2 data param
+
 let main () =
   (* Don't forget this! *)
   Random.self_init ();
 
-  do_rbias_exp ()
+  (* do_rbias_exp () *)
+  do_adult_exp ()
 
 let res =
   try main ();
