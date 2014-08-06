@@ -58,29 +58,51 @@ let mwem data param =
 
   (* Initial dist *)
   let d       = uniform_dist usize                 in
-  let res     = uniform_dist usize                 in
+
+  (* Unused accumulator *)
+  (* let avg     = uniform_dist usize                 in *)
+
+  (* We follow HLM and will cache the worst performing qry *)
+  let open Hashtbl in
+  let qval : (int, float) t = create t in
 
   for i = 1 to t do
     printf "\nStep: %d\n%!" i;
 
     (* Multiplying by n *)
     let score idx =
-      let res = abs_float (realdb.(idx) -. eval_bquery d qry.(idx)) *.n in
+      (* let res =  *)
+      abs_float (realdb.(idx) -. eval_bquery d qry.(idx)) *.n (* in *)
       (* printf "Score for query %d: %f \n%!" idx res; *)
-      res in
+      (* res in *)
+    in
 
+    let dump_qerror () =
     (* Print error *)
-    (* printf "Query Error: \n"; *)
-    (* Array.iteri (printf "q%2d: %f\n%!") (Array.init nqry score); *)
+      printf "Query Error: \n";
+      Array.iteri (printf "q%2d: %f\n%!") (Array.init nqry score) in
 
-    let badquery  = exp_mech em_eps nqry score          in
+    let rec get_badquery niter =
+      let badquery = exp_mech em_eps nqry score         in
+      if mem qval badquery then
+        if niter = 0 then begin
+          printf "[warning] Repeating query selection %d!!!\n" badquery;
+          (* dump_qerror (); *)
+          badquery, find qval badquery
+        end
+        else
+          get_badquery (niter - 1)
+      else
+        (* We noise the real value *)
+        let m = realdb.(badquery) +. Laplace.lap_noise lap_eps /. n in
+        add qval badquery m;
+        badquery, m
+    in
+    let badquery, m = get_badquery 10                   in
 
     (* qi is [0..1] *)
     let qi        = eval_bquery d qry.(badquery)        in
     printf "Worst query: %d with error %f\n%!" badquery (realdb.(badquery) -. qi);
-
-    (* We noise the real value *)
-    let m  = realdb.(badquery) +. Laplace.lap_noise lap_eps /. n in
 
     let c_err = m -. qi                                          in
     printf "Corrected private error: %f \n%!" c_err;
@@ -96,16 +118,19 @@ let mwem data param =
     in
 
     (* Arbitrary *)
-    for k = 1 to 100 do
+    for k = 1 to 2 do
       Util.mapi_in_place mw_update d;
       d_norm_in_place d
     done;
 
     (* Add the sum of this one to the result *)
-    Util.mapi_in_place (fun idx v -> v +. d.(idx)) res;
+    (* Util.mapi_in_place (fun idx v -> v +. d.(idx)) avg; *)
 
   done;
-  (* Get the average of all*)
+  (* For now we just release d *)
+  d
 
-  Util.map_in_place (fun v -> v /. tf) res;
-  res
+  (* Do the average *)
+  (* Util.map_in_place (fun v -> v /. tf) avg; *)
+  (* avg *)
+

@@ -20,21 +20,36 @@ let rec d_sample_slow svalue index d =
   else
     d_sample_slow (svalue -. cvalue) (index + 1) d
 
-let d_sample d =
-  let sum  = sum d          in
-  (* Printf.printf "Sum of EXPM: %f\n%!" sum; *)
+let d_sample d k =
+  let sum  = sum d            in
   let prob = Random.float sum in
+
+  let open Array  in
+  let open Printf in
+
+  let (d' : (int * float * float) array) = mapi (fun idx d -> (idx, d, k.(idx))) d in
+  let comp (x : (int * float * float)) (y : (int * float * float)) =
+    let (_, x, _), (_, y, _) = x, y in
+    - (compare x y)
+  in
+  sort comp d';
+  let d' = sub d' 0 20 in
+  printf "Sum of EXPM: %f, RanVal: %f\n%!" sum prob;
+  printf "Best candidates:\n%!";
+  iter (fun (q, v, d) -> printf "q%2d: %f - %f\n%!" q v d) d';
+
   d_sample_slow prob 0 d
 
 (* TODO: Verify the score function *)
 let exp_mech eps n score =
   let e2 = eps /. 2.0         in
   let sa = Array.init n score in
-  let sa_max = max sa         in
 
-  map_in_place (fun v -> exp (e2 *. (v -. sa_max))) sa;
+  let sa_max = max sa         in
+  let k = Array.copy sa       in
+  map_in_place (fun v -> exp ((v -. sa_max) *. e2 )) sa;
   (* The sum is guaranteed to be one? *)
-  d_sample sa
+  d_sample sa k
 
 (* Issues with precision here *)
 (* let exp_mech eps n score = *)
