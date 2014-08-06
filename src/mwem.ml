@@ -64,7 +64,7 @@ let mwem data param =
 
     (* Multiplying by n *)
     let score idx =
-      let res = abs_float ( realdb.(idx) -. eval_bquery !d qry.(idx) *. n) in
+      let res = abs_float ( realdb.(idx) *.n -. eval_bquery !d qry.(idx) *.n )  in
       (* printf "Score for query %d: %f \n%!" idx res; *)
       res in
 
