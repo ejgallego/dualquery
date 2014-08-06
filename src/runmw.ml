@@ -54,12 +54,14 @@ let main () =
   let open Array  in
   let open Util   in
 
+(*
   printf "\nReal eval:\n";
   iteri (printf "%d: %f\n") edata.sd_qcache;
 
-  printf "\nNew eval:\n";
+*)
   let rqry = DbD.eval_bqueries res edata.sd_queries  in
-  iteri (printf "%d: %f\n") rqry;
+  (* printf "\nNew eval:\n"; *)
+  (* iteri (printf "%d: %f\n") rqry; *)
 
   let error = mapi (fun i r -> (abs_float (r -. rqry.(i)))) edata.sd_qcache in
 

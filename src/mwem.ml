@@ -70,26 +70,25 @@ let mwem data param =
       res in
 
     (* Print error *)
-    printf "Query Error: \n";
-    Array.iteri (printf "q%2d: %f\n%!") (Array.init nqry score);
+    (* printf "Query Error: \n"; *)
+    (* Array.iteri (printf "q%2d: %f\n%!") (Array.init nqry score); *)
 
-    let badquery  = exp_mech em_eps nqry score in
-    printf "Worst query: %d\n%!" badquery;
+    let badquery  = exp_mech em_eps nqry score          in
 
-    (* We get the real noisied value *)
+    let qi        = eval_bquery d qry.(badquery)        in
+    printf "Worst query: %d with error %f\n%!" badquery (realdb.(badquery) -. qi);
+
+    (* We noise the real value *)
     let m  = realdb.(badquery) +. Laplace.lap_noise lap_eps /. n in
-    (* printf "Noised vs real: %f/%f\n%!" m realdb.(badquery); *)
 
-    (* Value of the bad query in the current db *)
-    let qi = eval_bquery d qry.(badquery) in
-    (* printf "Value of bad in current %f\n%!" qi; *)
-    printf "Diff: %f \n%!" (m -. qi);
+    let c_err = m -. qi                                          in
+    printf "Corrected private error: %f \n%!" c_err;
 
     (* MW update rule *)
     let mw_update idx v =
       let up_factor =
           exp ( (ev_bquery idx qry.(badquery) ) *.
-                (m -. qi) /. 2.0 )
+                c_err /. 2.0 )
       in
       (* printf "Update for %d (%f) with uf: %f\n" i !d.(i) up_factor; *)
       v *. up_factor
