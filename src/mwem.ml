@@ -93,7 +93,11 @@ let mwem data param =
       (* printf "Update for %d (%f) with uf: %f\n" i !d.(i) up_factor; *)
         v *. up_factor
     in
-    Util.map_in_place mw_update !d;
-    d_norm_in_place !d
+
+    (* Arbitrary *)
+    for k = 1 to 20 do
+      Util.map_in_place mw_update !d;
+      d_norm_in_place !d
+    done
   done;
   !d
