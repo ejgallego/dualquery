@@ -6,13 +6,12 @@
 *)
 
 open Dbdist
+open Util
 
 (* Multiplicative weights update rule *)
 
 (* Sampling from an array. Due to unboundness of the sum of the input
    distribution we have to compute it *)
-
-let d_sum d = Array.fold_left (+.) 0.0 d
 
 let rec d_sample_slow svalue index d =
   let cvalue = d.(index)   in
@@ -22,14 +21,23 @@ let rec d_sample_slow svalue index d =
     d_sample_slow (svalue -. cvalue) (index + 1) d
 
 let d_sample d =
-  let sum  = d_sum d          in
-  (* Printf.printf "Sum of MWEM: %f\n%!" sum; *)
-
+  let sum  = sum d          in
+  (* Printf.printf "Sum of EXPM: %f\n%!" sum; *)
   let prob = Random.float sum in
   d_sample_slow prob 0 d
 
 (* TODO: Verify the score function *)
 let exp_mech eps n score =
-  let score_array = Array.init n (fun idx -> exp (eps *. score idx /. 2.0)) in
-  d_sample score_array
+  let e2 = eps /. 2.0         in
+  let sa = Array.init n score in
+  let sa_max = max sa         in
+
+  map_in_place (fun v -> exp (e2 *. (v -. sa_max))) sa;
+  (* The sum is guaranteed to be one? *)
+  d_sample sa
+
+(* Issues with precision here *)
+(* let exp_mech eps n score = *)
+(*   let sa = Array.init n (fun idx -> exp (eps *. score idx /. 2.0)) in *)
+(*   d_sample sa *)
 
