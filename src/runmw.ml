@@ -38,39 +38,59 @@ let mk_rbias_data elem atts nqry =
     sd_qcache  = qcache;
   }
 
+(* Information about the error in a run *)
+type exp_error = {
+  err_avg     : float;
+  err_max     : float;
+}
+
+let analyze_error rqry sqry =
+  let open Array  in
+  let open Util   in
+
+  (* Error per query *)
+  let error = mapi (fun i r -> (abs_float (r -. sqry.(i)))) rqry in
+  (* printf "\nError:\n"; *)
+  (* iteri (printf "%d: %f\n") error; *)
+  {
+    err_avg = avg error;
+    err_max = max error;
+  }
+
+let average_exp (e_arr : exp_error array) =
+  let n_elems = float_of_int (Array.length e_arr)                     in
+  let sum_max = Array.fold_left (fun n e -> n +. e.err_max) 0.0 e_arr in
+  let sum_avg = Array.fold_left (fun n e -> n +. e.err_avg) 0.0 e_arr in
+  {
+    err_avg = sum_avg /. n_elems;
+    err_max = sum_max /. n_elems;
+  }
+
+(* Do an experiment n times and print the results *)
+let do_exp n data param =
+
+  let open Printf in
+
+  let exps = Array.init n (fun idx ->
+    let dist = mwem data param                        in
+    let rqry = DbD.eval_bqueries dist data.sd_queries in
+    let res  = analyze_error data.sd_qcache rqry      in
+    printf "\nAvg/Max Error: %f/%f\n" res.err_avg res.err_max;
+    res
+  ) in
+  let res = average_exp exps in
+  printf "\nAvg/Max Error: %f/%f\n" res.err_avg res.err_max
+
+let do_rbias_exp () =
+  let data  = mk_rbias_data 32000 18 1000          in
+  let param = { exp_eps = 1.0; exp_steps = 10; }   in
+  do_exp 2 data param
 
 let main () =
   (* Don't forget this! *)
   Random.self_init ();
 
-  (* Call the actual experiment below *)
-  (* 20000 elem, 10 atts, 10000 queries *)
-
-  let edata  = mk_rbias_data 20000 16 1000           in
-  let eparam = { exp_eps = 10.0; exp_steps = 30; }   in
-  let res    = mwem edata eparam                     in
-
-  let open Printf in
-  let open Array  in
-  let open Util   in
-
-(*
-  printf "\nReal eval:\n";
-  iteri (printf "%d: %f\n") edata.sd_qcache;
-
-*)
-  let rqry = DbD.eval_bqueries res edata.sd_queries  in
-  (* printf "\nNew eval:\n"; *)
-  (* iteri (printf "%d: %f\n") rqry; *)
-
-  let error = mapi (fun i r -> (abs_float (r -. rqry.(i)))) edata.sd_qcache in
-
-  printf "\nError:\n";
-  iteri (printf "%d: %f\n") error;
-
-  printf "\nAvg Error: %f\n" (avg error);
-  printf "\nMax Error: %f\n" (max error);
-  ()
+  do_rbias_exp ()
 
 let res =
   try main ();
