@@ -65,7 +65,7 @@ let mwem data param =
 
     (* Multiplying by n *)
     let score idx =
-      let res = abs_float ( realdb.(idx) *.n -. eval_bquery d qry.(idx) *.n )  in
+      let res = abs_float (realdb.(idx) -. eval_bquery d qry.(idx)) *.n in
       (* printf "Score for query %d: %f \n%!" idx res; *)
       res in
 
@@ -77,11 +77,11 @@ let mwem data param =
     printf "Worst query: %d\n%!" badquery;
 
     (* We get the real noisied value *)
-    let m  = realdb.(badquery) *. n +. Laplace.lap_noise lap_eps in
+    let m  = realdb.(badquery) +. Laplace.lap_noise lap_eps /. n in
     (* printf "Noised vs real: %f/%f\n%!" m realdb.(badquery); *)
 
     (* Value of the bad query in the current db *)
-    let qi = eval_bquery d qry.(badquery) *. n in
+    let qi = eval_bquery d qry.(badquery) in
     (* printf "Value of bad in current %f\n%!" qi; *)
     printf "Diff: %f \n%!" (m -. qi);
 
@@ -89,7 +89,7 @@ let mwem data param =
     let mw_update idx v =
       let up_factor =
           exp ( (ev_bquery idx qry.(badquery) ) *.
-                (m -. qi) /. (2.0 *. n) )
+                (m -. qi) /. 2.0 )
       in
       (* printf "Update for %d (%f) with uf: %f\n" i !d.(i) up_factor; *)
       v *. up_factor
