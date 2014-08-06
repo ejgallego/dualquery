@@ -84,6 +84,9 @@ let mwem data param =
     let c_err = m -. qi                                          in
     printf "Corrected private error: %f \n%!" c_err;
 
+    (* Scaling *)
+    let c_err = c_err /.n in
+
     (* MW update rule *)
     let mw_update idx v =
       let up_factor =

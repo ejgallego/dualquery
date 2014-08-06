@@ -46,8 +46,8 @@ let main () =
   (* Call the actual experiment below *)
   (* 20000 elem, 10 atts, 10000 queries *)
 
-  let edata  = mk_rbias_data 2000 12 200             in
-  let eparam = { exp_eps = 10.0; exp_steps = 100; }  in
+  let edata  = mk_rbias_data 20000 16 1000           in
+  let eparam = { exp_eps = 10.0; exp_steps = 30; }   in
   let res    = mwem edata eparam                     in
 
   let open Printf in
