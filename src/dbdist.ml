@@ -7,6 +7,7 @@
 
 open Db
 open Query
+open Util
 
 (* A database represented as a histogram  *)
 type db_dist = float array
@@ -86,10 +87,8 @@ let to_dist dbi db =
   Array.map (fun n -> n /. felem
   ) newdb
 
-let d_sum d = Array.fold_left (+.) 0.0 d
-
 let d_norm d =
-    let asum = d_sum d in
+    let asum = sum d in
     Util.mapi_in_place (fun _ -> fun v -> v /. asum) d
 
 let print_db out db =

@@ -30,18 +30,15 @@ let qd_new n =
     alias = make n 0;
   }
 
-
-let qd_sum qd = fold_left (+.) 0.0 qd.dist
-
 let qd_norm qd = { qd with dist =
-    let asum = qd_sum qd in
+    let asum = Util.sum qd.dist in
     Util.mapi_in_place (fun _ -> fun v -> v /. asum) qd.dist
   }
 
 (* Warning, not private! *)
 let qd_update_elem queries query_cache syn_elem eta index qd_elem =
-  let query      = get queries index                      in
-  let q_res      = get query_cache index                  in
+  let query      = queries.(index)                        in
+  let q_res      = query_cache.(index)                    in
   let q_res_syn  = eval_bin_elem query syn_elem           in
   let uf         = exp ((-. eta) *. (q_res_syn -. q_res)) in
   (* Printf.printf  "Perfomance of query %d on the synthetic db: %f (%f, %f), update factor %G\n" index (q_res_syn -. q_res) q_res_syn q_res uf; *)
@@ -55,13 +52,13 @@ let qd_stats qd = Array.fold_left (fun (nz, min, max) -> fun v ->
   (nz', min', max')
   ) (0, max_float, min_float) qd.dist
 
-let qd_update qd queries query_cache syn_elem eta =
+let qd_update_in_place qd queries query_cache syn_elem eta =
   let res = qd_norm {qd with
     dist = Util.mapi_in_place (qd_update_elem queries query_cache syn_elem eta) qd.dist
   } in
   let (nz, min, max) = qd_stats res in
-  Printf.printf "*** (zeros, min, max) after query update: (%d, %G, %G) \n%!" nz min max;
-  res
+  Printf.printf "*** (zeros, min, max) after query update: (%d, %G, %G) \n%!" nz min max
+
 
 (*************************************************************************)
 (* Sampling *)
@@ -159,6 +156,6 @@ let qd_nsample_slow n qd qry =
   Array.map
     (fun svalue ->
       let q_idx = qd_sample_slow svalue 0 qd in
-      Array.get qry q_idx
+      qry.(q_idx)
     ) probs
 

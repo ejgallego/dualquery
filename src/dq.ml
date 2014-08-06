@@ -80,7 +80,8 @@ let dq data exp =
     else ();
 
     printf "**** Updating query distribution\n%!";
-    qd_update qdist queries query_cache syn_elem eta;
+
+    qd_update_in_place qdist queries query_cache syn_elem eta;
 
     syn_elem
   ) in

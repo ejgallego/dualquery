@@ -5,6 +5,19 @@
    See the LICENSE file for details on licensing.
 *)
 
+(* Misc array utils *)
+let sum (x : float array) =
+  Array.fold_left (+.) 0.0 x
+
+let avg (x : float array) =
+  sum x /. float_of_int (Array.length x)
+
+let max (x : float array) =
+  Array.fold_left max min_float x
+
+let min (x : float array) =
+  Array.fold_left min max_float x
+
 let mapi_in_place (f : int -> float -> float) a =
   (* Array.mapi  f a *)
   Array.iteri (fun idx -> fun v -> Array.unsafe_set a idx (f idx v)) a;

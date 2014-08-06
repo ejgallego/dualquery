@@ -27,7 +27,7 @@ type qdist = {
 val qd_new : int -> qdist
 
 (* qd_update : qdist -> queries -> query_cache -> syn_elem *)
-val qd_update : qdist -> bin_query array -> float array -> bin_db_row -> float -> qdist
+val qd_update_in_place : qdist -> bin_query array -> float array -> bin_db_row -> float -> unit
 
 (* Stats of the distribution (zeros, min, max) *)
 val qd_stats  : qdist -> (int * float * float)

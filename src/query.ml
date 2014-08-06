@@ -42,7 +42,7 @@ let generate_bqueries n_atts n_q =
 (* Note we may end up generating the same twice, althought it is not likely *)
 let generate_literal n db_schema =
   let att    = Random.int n                      in
-  let ai     = Array.get db_schema att           in
+  let ai     = db_schema.(att)                   in
   let av     = Random.int (ai.att_max + 1)       in
   if Random.bool () then
     LEq (att, av)
@@ -90,7 +90,7 @@ let generate_queries db_schema n_q =
 
 let to_bin_literal att_map lit = match lit with
   | LEq  (a, v) ->
-    let (a_pos, ne) = Array.get att_map a in
+    let (a_pos, ne) = att_map.(a) in
     (* Little hack to support binary attributes *)
     if ne = 0 then
       (if v = 1 then PVar a_pos else NVar a_pos)
@@ -98,7 +98,7 @@ let to_bin_literal att_map lit = match lit with
       PVar (a_pos + v)
 
   | LNeq (a, v) ->
-    let (a_pos, ne) = Array.get att_map a in
+    let (a_pos, ne) = att_map.(a) in
     (* Little hack to support binary attributes *)
     if ne = 0 then
       (if v = 1 then NVar a_pos else PVar a_pos)

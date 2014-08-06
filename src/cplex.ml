@@ -215,7 +215,7 @@ let atts_in_queries q = Array.fold_left att_in_query AttSet.empty q
 
 let tag_atts q atts =
   let attl = AttSet.elements (atts_in_queries q) in
-  List.iter (fun e -> Array.set atts e (-2)) attl
+  List.iter (fun e -> atts.(e) <- (-2)) attl
 
 (* WARNING!!!! In some very rare cases, CPlex will return something
    like -4.00000E-30 instead of 0. I don't know how frequent is this,

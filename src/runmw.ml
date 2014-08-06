@@ -51,12 +51,22 @@ let main () =
   let res    = mwem edata eparam                      in
 
   let open Printf in
-  printf "Real eval:\n";
-  Array.iteri (printf "%d: %f\n") edata.sd_qcache;
+  let open Array  in
+  let open Util   in
 
-  printf "\n\nNew eval:\n";
+  printf "\nReal eval:\n";
+  iteri (printf "%d: %f\n") edata.sd_qcache;
+
+  printf "\nNew eval:\n";
   let rqry = DbD.eval_bqueries res edata.sd_queries  in
-  Array.iteri (printf "%d: %f\n") rqry;
+  iteri (printf "%d: %f\n") rqry;
+
+  let error = mapi (fun i r -> (abs_float (r -. rqry.(i)))) edata.sd_qcache in
+
+  printf "\nError:\n";
+  iteri (printf "%d: %f\n") error;
+
+  printf "\nAvg Error: %f\n" (avg error);
   ()
 
 let res =

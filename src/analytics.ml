@@ -8,6 +8,7 @@
 (* Module for analytics *)
 
 open Printf
+open Util
 
 module L = Log
 
@@ -25,10 +26,10 @@ type exp_error = {
 (********************************************************************* *)
 (* Histogram helper functions                                          *)
 (* Takes an array of floats and returns an histogram                   *)
-let array_to_histo arr n_buckets =
-  let min         = Array.fold_left min 0.0 arr     in
-  let max         = Array.fold_left max 0.0 arr     in
-  let res         = Array.make (n_buckets + 1) 0    in
+let array_to_histo (arr : float array) n_buckets =
+  let min         = min arr                                  in
+  let max         = max arr                                  in
+  let res         = Array.make (n_buckets + 1) 0             in
   let bucket_size = (max -. min) /. (float_of_int n_buckets) in
   Array.iter (fun item ->
     let bucket = int_of_float ((item -. min) /. bucket_size) in
@@ -71,10 +72,10 @@ let analyze_error ctx nqry real_db syn_db =
     abs_float (v1 -. v2)           )                             in
 
   (* Total additive error *)
-  let t_err   = Array.fold_left (+.) 0.0 abs_q_err               in
+  let t_err   = sum abs_q_err               in
 
   (* Maximum error *)
-  let max_err = Array.fold_left max 0.0 abs_q_err                in
+  let max_err = max abs_q_err                in
 
   (* Average error *)
   let a_err   = t_err /. (float_of_int nqry)                     in
@@ -85,13 +86,13 @@ let analyze_error ctx nqry real_db syn_db =
 
   (* Relative error *)
   let rel_q_err = Array.init nqry (fun idx ->
-    let q_real = Array.get real_db idx in
-    let q_syn  = Array.get syn_db idx  in
+    let q_real = real_db.(idx) in
+    let q_syn  = syn_db.(idx)  in
     if (q_real > 0.0) then
       rel_error q_real q_syn
     else
       -1.0)                            in
-  let t_rel_err   = Array.fold_left (+.) 0.0 rel_q_err           in
+  let t_rel_err   = sum rel_q_err                                in
   let a_rel_err   = t_rel_err /. (float_of_int nqry)             in
 
   (* Print rerror histogram *)

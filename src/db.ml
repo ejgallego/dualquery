@@ -6,7 +6,6 @@
 *)
 
 open Array
-
 open Attribute
 
 (* A db schema is a list of attributes *)
@@ -31,10 +30,10 @@ type db     = db_row array
 type bin_db_row = bool array
 type bin_db     = bin_db_row array
 
-let get_db_att  db = length (get db 0)
+let get_db_att  db = length db.(0)
 let get_db_elem db = length db
 
-let get_bin_db_att  db = length (get db 0)
+let get_bin_db_att  db = length db.(0)
 let get_bin_db_elem db = length db
 
 (* Build an array of (start, size) for each attribute *)
@@ -65,7 +64,7 @@ let generate_bool_bias bias =
   if r < bias then false else true
 
 let generate_row n_att bias _ =
-  init n_att (fun idx -> generate_bool_bias (get bias idx))
+  init n_att (fun idx -> generate_bool_bias bias.(idx))
 
 let generate_bin_db_bias n_att n_elem =
   let bias = init n_att (fun _ -> Random.float 1.0) in
@@ -77,7 +76,7 @@ open Printf
 
 let print_header out db =
   if length db > 0 then
-    let atts = length (get db 0) in
+    let atts = length db.(0) in
     fprintf out "    ";
     for i = 0 to atts - 1 do
       fprintf out "%3d" i

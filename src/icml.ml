@@ -297,10 +297,11 @@ module Param = struct
     let oracle = o_rand data                                                    in
     let elem   = d_elem data                                                    in
 
+(*
     let param  = [| (0.1, 150); (0.1, 200); (0.1, 250); (0.1, 300);
 		    (0.2, 100); (0.1, 150); (0.1, 200);
 		    (0.3, 75);  (0.3, 100); (0.3, 150) |] in
-
+*)
     (* Ahh, messed up the previous one *)
     let param  = [| (0.2, 150); (0.2, 200) |] in
 
@@ -380,7 +381,7 @@ module Queries  = struct
   let netflix () =
 
     let qrys   = Array.init 50 (fun i -> (i + 1) * 40000)               in
-    let params = mk_exp_params 1.2 120 4500                             in
+    (* let params = mk_exp_params 1.2 120 4500                             in *)
 
     do_exp_iter (Array.length qrys) (fun idx ->
       let nqry   = qrys.(idx)                                                 in

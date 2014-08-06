@@ -37,7 +37,7 @@ let parse_entry n line =
   let entry  = Array.init n
     (fun i ->
       (* Printf.printf "%s%!\n" (nth s_line i); *)
-      parse_attribute (Array.get parsing_schema i) (nth s_line i)) in
+      parse_attribute parsing_schema.(i) (nth s_line i)) in
   entry
 
 let parse_res : ((int array) list) ref = ref []

@@ -20,7 +20,7 @@ let rec ms_set db idx atts n_entries =
   if n_entries >= 1 then
     begin
       for i = 0 to (ms_att - 1) do
-	Array.set (Array.get db idx) i (ms_bool atts i)
+	Array.set db.(idx) i (ms_bool atts i)
       done;
       ms_set db (idx+1) atts (n_entries - 1)
     end

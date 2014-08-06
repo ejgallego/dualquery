@@ -5,6 +5,8 @@
    See the LICENSE file for details on licensing.
 *)
 
+open Util
+
 let epsilon_0 eta t s n =
   let t = float_of_int t in
   let s = float_of_int s in
@@ -44,11 +46,11 @@ let lap sigma =
 
 let lap_e0_avg_error n k =
   let k' = float_of_int k in
-  (Array.fold_left (+.) 0.0 (Array.init k (fun _ -> abs_float (lap k'))) /. k') /. n
+  (sum (Array.init k (fun _ -> abs_float (lap k'))) /. k') /. n
 
 let lap_e0_max_error n k =
   let k' = float_of_int k in
-  (Array.fold_left max 0.0 (Array.init k (fun _ -> abs_float (lap k')))) /. 500000.0;;
+  (max (Array.init k (fun _ -> abs_float (lap k')))) /. 500000.0
 
 (* Laplace simulations for eps_delta *)
 
