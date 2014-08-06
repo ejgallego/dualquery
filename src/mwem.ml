@@ -57,14 +57,15 @@ let mwem data param =
   let usize   = Util.pow 2 data.sd_info.db_bin_att in
 
   (* Initial dist *)
-  let d       = ref (uniform_dist usize)           in
+  let d       = uniform_dist usize                 in
+  let res     = uniform_dist usize                 in
 
   for i = 1 to t do
     printf "\nStep: %d\n%!" i;
 
     (* Multiplying by n *)
     let score idx =
-      let res = abs_float ( realdb.(idx) *.n -. eval_bquery !d qry.(idx) *.n )  in
+      let res = abs_float ( realdb.(idx) *.n -. eval_bquery d qry.(idx) *.n )  in
       (* printf "Score for query %d: %f \n%!" idx res; *)
       res in
 
@@ -80,7 +81,7 @@ let mwem data param =
     (* printf "Noised vs real: %f/%f\n%!" m realdb.(badquery); *)
 
     (* Value of the bad query in the current db *)
-    let qi = eval_bquery !d qry.(badquery) *. n in
+    let qi = eval_bquery d qry.(badquery) *. n in
     (* printf "Value of bad in current %f\n%!" qi; *)
     printf "Diff: %f \n%!" (m -. qi);
 
@@ -96,8 +97,15 @@ let mwem data param =
 
     (* Arbitrary *)
     for k = 1 to 20 do
-      Util.mapi_in_place mw_update !d;
-      d_norm_in_place !d
-    done
+      Util.mapi_in_place mw_update d;
+      d_norm_in_place d
+    done;
+
+    (* Add the sum of this one to the result *)
+    Util.mapi_in_place (fun idx v -> v +. d.(idx)) res;
+
   done;
-  !d
+  (* Get the average of all*)
+
+  Util.map_in_place (fun v -> v /. tf) res;
+  res
