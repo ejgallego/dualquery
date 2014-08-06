@@ -98,7 +98,7 @@ let mwem data param =
         add qval badquery m;
         badquery, m
     in
-    let badquery, m = get_badquery 10                   in
+    let badquery, m = get_badquery 2                    in
 
     (* qi is [0..1] *)
     let qi        = eval_bquery d qry.(badquery)        in

@@ -33,7 +33,7 @@ let d_sample d k =
     - (compare x y)
   in
   sort comp d';
-  let d' = sub d' 0 20 in
+  let d' = sub d' 0 5 in
   printf "Sum of EXPM: %f, RanVal: %f\n%!" sum prob;
   printf "Best candidates:\n%!";
   iter (fun (q, v, d) -> printf "q%2d: %f - %f\n%!" q v d) d';
