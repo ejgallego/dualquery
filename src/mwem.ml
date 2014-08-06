@@ -75,6 +75,7 @@ let mwem data param =
 
     let badquery  = exp_mech em_eps nqry score          in
 
+    (* qi is [0..1] *)
     let qi        = eval_bquery d qry.(badquery)        in
     printf "Worst query: %d with error %f\n%!" badquery (realdb.(badquery) -. qi);
 
@@ -84,21 +85,18 @@ let mwem data param =
     let c_err = m -. qi                                          in
     printf "Corrected private error: %f \n%!" c_err;
 
-    (* Scaling *)
-    let c_err = c_err /.n in
-
     (* MW update rule *)
     let mw_update idx v =
       let up_factor =
           exp ( (ev_bquery idx qry.(badquery) ) *.
                 c_err /. 2.0 )
       in
-      (* printf "Update for %d (%f) with uf: %f\n" i !d.(i) up_factor; *)
+      (* printf "Update for %d (%f) with uf: %f\n" idx d.(idx) up_factor; *)
       v *. up_factor
     in
 
     (* Arbitrary *)
-    for k = 1 to 20 do
+    for k = 1 to 100 do
       Util.mapi_in_place mw_update d;
       d_norm_in_place d
     done;
