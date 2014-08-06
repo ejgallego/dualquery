@@ -41,22 +41,23 @@ let ba_eval_query (db : ba) query =
   fold (fun qry_val -> fun i -> qry_val +. (ba_eval_elem query db i)) 0.0 db
 
 (* Perform the normalization in place *)
-let ev_norm n res =
+let ev_norm_in_place n res =
   let n = float_of_int n in
-  Util.mapi_in_place (fun idx -> fun r -> r /. n) res
+  Util.map_in_place (fun r -> r /. n) res
 
 let ba_eval_bqueries_norm verbose db queries =
   let db_length = dim1 db                    in
   let n_queries = Array.length queries       in
   let p_time    = ref (Unix.gettimeofday ()) in
 
-  ev_norm db_length
+
   (* This is the same than eval_queries but with the print
 
      The performance here is not very good, but indeed in large
      databases we are having cache trouble for sure *)
 
     (* (Parmap.array_float_parmapi ~ncores:n_cores (fun idx q -> *)
+  let res =
     (Parmap.array_parmapi ~ncores:Params.n_cores (fun idx q ->
     (* (Array.mapi (fun idx -> fun q -> *)
     let report = 100 in
@@ -70,13 +71,16 @@ let ba_eval_bqueries_norm verbose db queries =
     else
       ();
     ba_eval_query db q) queries)
+  in
+  ev_norm_in_place db_length res;
+  res
 
 let ba_eval_bqueries_norm_slow verbose db queries =
   let db_length = dim1 db                    in
   let n_queries = Array.length queries       in
   let p_time    = ref (Unix.gettimeofday ()) in
 
-  ev_norm db_length
+  let res =
   (* This is the same than eval_queries but with the print
 
      The performance here is not very good, but indeed in large
@@ -94,6 +98,9 @@ let ba_eval_bqueries_norm_slow verbose db queries =
       else
 	();
       ba_eval_query db q) queries)
+  in
+  ev_norm_in_place db_length res;
+  res
 
 
 let ba_generate_bool_bias db row att bias =

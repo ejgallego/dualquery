@@ -18,10 +18,13 @@ let max (x : float array) =
 let min (x : float array) =
   Array.fold_left min max_float x
 
+(* Map in place functions *)
+let map_in_place (f : float -> float) (a : float array) =
+  Array.iteri (fun idx -> fun v -> Array.unsafe_set a idx (f v)) a
+
 let mapi_in_place (f : int -> float -> float) a =
-  (* Array.mapi  f a *)
-  Array.iteri (fun idx -> fun v -> Array.unsafe_set a idx (f idx v)) a;
-  a
+  Array.iteri (fun idx -> fun v -> Array.unsafe_set a idx (f idx v)) a
+
 
 let foldi_left f x a =
   let r = ref x in

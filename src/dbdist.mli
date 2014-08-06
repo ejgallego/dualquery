@@ -22,6 +22,6 @@ val ev_bquery     : int     -> bin_query       -> float
 val eval_bquery   : db_dist -> bin_query       -> float
 val eval_bqueries : db_dist -> bin_query array -> float array
 
-val d_norm : db_dist -> db_dist
+val d_norm_in_place : db_dist -> unit
 
 val print_db : out_channel -> db_dist -> unit

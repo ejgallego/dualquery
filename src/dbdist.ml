@@ -87,9 +87,9 @@ let to_dist dbi db =
   Array.map (fun n -> n /. felem
   ) newdb
 
-let d_norm d =
+let d_norm_in_place d =
     let asum = sum d in
-    Util.mapi_in_place (fun _ -> fun v -> v /. asum) d
+    Util.map_in_place (fun v -> v /. asum) d
 
 let print_db out db =
   (* We don't want the header I guess *)

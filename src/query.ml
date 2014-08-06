@@ -195,22 +195,22 @@ let eval_query (db : db) query =
 (*   Array.map (fun r -> (float_of_int r) /. (float_of_int n)) res *)
 
 (* Perform the normalization in place *)
-let ev_norm n res =
+let ev_norm_in_place n (dist : float array) : unit =
   let n = float_of_int n in
-  Util.mapi_in_place (fun _idx -> fun r -> r /. n) res
+  Util.map_in_place (fun r -> r /. n) dist
 
 let eval_queries_norm verbose db queries =
   let db_length = Array.length db         in
   let n_queries = Array.length queries    in
   let p_time = ref (Unix.gettimeofday ()) in
 
-  ev_norm db_length
   (* This is the same than eval_queries but with the print
 
      The performance here is not very good, but indeed in large
      databases we are having cache trouble for sure *)
 
     (* (Parmap.array_float_parmapi ~ncores:n_cores (fun idx q -> *)
+  let res =
     (Parmap.array_parmapi ~ncores:Params.n_cores (fun idx q ->
     (* (Array.mapi (fun idx -> fun q -> *)
     let report = 1000 in
@@ -224,13 +224,16 @@ let eval_queries_norm verbose db queries =
     else
       ();
     eval_query db q) queries)
+  in
+  ev_norm_in_place db_length res;
+  res
 
 let eval_bqueries_norm verbose db queries =
   let db_length = Array.length db         in
   let n_queries = Array.length queries    in
   let p_time = ref (Unix.gettimeofday ()) in
 
-  ev_norm db_length
+  let res =
   (* This is the same than eval_queries but with the print
 
      The performance here is not very good, but indeed in large
@@ -250,6 +253,10 @@ let eval_bqueries_norm verbose db queries =
     else
       ();
     eval_bin_query db q) queries)
+  in
+  ev_norm_in_place db_length res;
+  res
+
 
 let string_of_lt l = match l with
   | PVar n -> sprintf " %3d" n

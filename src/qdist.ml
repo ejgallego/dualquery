@@ -30,10 +30,9 @@ let qd_new n =
     alias = make n 0;
   }
 
-let qd_norm qd = { qd with dist =
-    let asum = Util.sum qd.dist in
-    Util.mapi_in_place (fun _ -> fun v -> v /. asum) qd.dist
-  }
+let qd_norm_in_place qd =
+  let asum = Util.sum qd.dist in
+  Util.map_in_place (fun v -> v /. asum) qd.dist
 
 (* Warning, not private! *)
 let qd_update_elem queries query_cache syn_elem eta index qd_elem =
@@ -53,10 +52,11 @@ let qd_stats qd = Array.fold_left (fun (nz, min, max) -> fun v ->
   ) (0, max_float, min_float) qd.dist
 
 let qd_update_in_place qd queries query_cache syn_elem eta =
-  let res = qd_norm {qd with
-    dist = Util.mapi_in_place (qd_update_elem queries query_cache syn_elem eta) qd.dist
-  } in
-  let (nz, min, max) = qd_stats res in
+
+  Util.mapi_in_place (qd_update_elem queries query_cache syn_elem eta) qd.dist;
+  qd_norm_in_place qd;
+
+  let (nz, min, max) = qd_stats qd in
   Printf.printf "*** (zeros, min, max) after query update: (%d, %G, %G) \n%!" nz min max
 
 

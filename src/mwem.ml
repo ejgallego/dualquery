@@ -86,16 +86,14 @@ let mwem data param =
     (* printf "Diff: %f \n%!" (m -. qi); *)
 
     (* MW update rule *)
-    let mw_update i =
+    let mw_update v =
       let up_factor =
           exp ( (ev_bquery i qry.(badquery)) *.
                   (m -. qi) /. (2.0 *. n) ) in
       (* printf "Update for %d (%f) with uf: %f\n" i !d.(i) up_factor; *)
-        !d.(i) *. up_factor
+        v *. up_factor
     in
-    (* We keep the last distribution *)
-    let m = Array.init usize mw_update in
-    d := d_norm m;
-
+    Util.map_in_place mw_update !d;
+    d_norm_in_place !d
   done;
   !d
