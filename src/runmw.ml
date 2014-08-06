@@ -67,7 +67,7 @@ let main () =
   iteri (printf "%d: %f\n") error;
 
   printf "\nAvg Error: %f\n" (avg error);
-  printf "\nAvg Max: %f\n"   (max error);
+  printf "\nMax Error: %f\n" (max error);
   ()
 
 let res =
