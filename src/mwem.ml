@@ -73,7 +73,6 @@ let mwem data param =
     Array.iteri (printf "q%2d: %f\n%!") (Array.init nqry score);
 
     let badquery  = exp_mech em_eps nqry score in
-
     printf "Worst query: %d\n%!" badquery;
 
     (* We get the real noisied value *)
@@ -83,20 +82,21 @@ let mwem data param =
     (* Value of the bad query in the current db *)
     let qi = eval_bquery !d qry.(badquery) *. n in
     (* printf "Value of bad in current %f\n%!" qi; *)
-    (* printf "Diff: %f \n%!" (m -. qi); *)
+    printf "Diff: %f \n%!" (m -. qi);
 
     (* MW update rule *)
-    let mw_update v =
+    let mw_update idx v =
       let up_factor =
-          exp ( (ev_bquery i qry.(badquery)) *.
-                  (m -. qi) /. (2.0 *. n) ) in
+          exp ( (ev_bquery idx qry.(badquery) ) *.
+                (m -. qi) /. (2.0 *. n) )
+      in
       (* printf "Update for %d (%f) with uf: %f\n" i !d.(i) up_factor; *)
-        v *. up_factor
+      v *. up_factor
     in
 
     (* Arbitrary *)
     for k = 1 to 20 do
-      Util.map_in_place mw_update !d;
+      Util.mapi_in_place mw_update !d;
       d_norm_in_place !d
     done
   done;
