@@ -106,22 +106,22 @@ let do_exp n data param =
   let res = average_exp exps in
   printf "\nAvg/Max Error: %f/%f\n" res.err_avg res.err_max
 
-let do_rbias_exp () =
-  let data  = mk_rbias_data 32000 18 1000          in
-  let param = { exp_eps = 1.0; exp_steps = 10; }   in
-  do_exp 2 data param
+let do_rbias_exp nelem atts nqry eps t =
+  let data  = mk_rbias_data nelem atts nqry          in
+  let param = { exp_eps = eps; exp_steps = t; }   in
+  do_exp 3 data param
 
-let do_adult_exp () =
-  let data  = mk_adult_data 500                    in
-  let param = { exp_eps = 1.0; exp_steps = 20; }   in
-  do_exp 2 data param
+let do_adult_exp nqry eps t =
+  let data  = mk_adult_data nqry                  in
+  let param = { exp_eps = eps; exp_steps = t; }   in
+  do_exp 3 data param
 
 let main () =
   (* Don't forget this! *)
   Random.self_init ();
 
-  (* do_rbias_exp () *)
-  do_adult_exp ()
+  do_rbias_exp 10000 16 1000 1.0 12;
+  do_adult_exp 5000 1.0 14
 
 let res =
   try main ();
