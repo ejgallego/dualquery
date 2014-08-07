@@ -32,7 +32,6 @@ let mk_rbias_data elem atts nqry =
   let qry     = Q.generate_bqueries  atts nqry    in
   let qcache  = Q.eval_bqueries_norm true db qry  in
 
-
   { sd_info    = dbinfo;
     sd_queries = qry;
     sd_qcache  = qcache;
@@ -81,13 +80,22 @@ let average_exp (e_arr : exp_error array) =
     err_max = sum_max /. n_elems;
   }
 
-(* Do an experiment n times and print the results *)
-let do_exp n data param =
+let all_exp : (exp_data * exp_error * exp_error) list ref = ref []
 
+let append_res data ires res =
+  all_exp := (data, ires, res) :: !all_exp
+
+let print_res s data res =
   let open Printf in
+  Printf.printf "%s Avg/Max Error for %s: %f/%f\n" s data.sd_info.db_name res.err_avg res.err_max
+
+(* Do an experiment n times and print the results *)
+let do_exp n engine data param =
+
+  let open Array in
 
   (* Initial distribution *)
-  let exps = Array.init n (fun idx ->
+  let exps = init n (fun idx ->
 
     (* Init code, we could initialize in a different way *)
     let usize   = Util.pow 2 data.sd_info.db_bin_att     in
@@ -95,33 +103,46 @@ let do_exp n data param =
 
     let iqry    = DbD.eval_bqueries init data.sd_queries in
     let ires    = analyze_error data.sd_qcache iqry      in
-    printf "\nInitial Avg/Max Error: %f/%f\n" ires.err_avg ires.err_max;
+    print_res "Initial" data ires;
 
-    let dist = mwem data param init                      in
+    let dist = engine data param init                    in
     let rqry = DbD.eval_bqueries dist data.sd_queries    in
     let res  = analyze_error data.sd_qcache rqry         in
-    printf "\nAvg/Max Error: %f/%f\n" res.err_avg res.err_max;
-    res
+    print_res "Final" data res;
+    ires, res
   )                                                      in
-  let res = average_exp exps in
-  printf "\nAvg/Max Error: %f/%f\n" res.err_avg res.err_max
+  let iexps, exps = map fst exps, map snd exps           in
+  let ires, res = average_exp iexps, average_exp exps    in
+  append_res data ires res;
+  print_res "Total" data res
 
 let do_rbias_exp nelem atts nqry eps t =
-  let data  = mk_rbias_data nelem atts nqry          in
+  let data  = mk_rbias_data nelem atts nqry       in
   let param = { exp_eps = eps; exp_steps = t; }   in
-  do_exp 3 data param
+  do_exp 3 mwem data param;
+  do_exp 3 mw   data param
 
 let do_adult_exp nqry eps t =
   let data  = mk_adult_data nqry                  in
   let param = { exp_eps = eps; exp_steps = t; }   in
-  do_exp 3 data param
+  do_exp 3 mwem data param;
+  do_exp 3 mw   data param
+
+let print_all_res () =
+  let open Printf in
+  printf "\n All exps\n";
+  List.iter (fun (d, ir, r) ->
+    print_res "Initial" d ir;
+    print_res "Final"   d r
+  ) !all_exp
 
 let main () =
   (* Don't forget this! *)
   Random.self_init ();
 
   do_rbias_exp 10000 16 1000 1.0 12;
-  do_adult_exp 5000 1.0 14
+  do_adult_exp 5000 1.0 14;
+  print_all_res ()
 
 let res =
   try main ();
