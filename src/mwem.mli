@@ -31,6 +31,8 @@ type exp_result = {
   res_qd_stats : (int * float * float);
 }
 *)
+type exp_res = db_dist
 
 (* val mwem : exp_data -> exp_param -> exp_result *)
+val mw   : exp_data -> exp_param -> db_dist -> db_dist
 val mwem : exp_data -> exp_param -> db_dist -> db_dist

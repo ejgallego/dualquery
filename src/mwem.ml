@@ -22,6 +22,7 @@ type exp_param = {
   exp_steps   : int;
 }
 
+type exp_res = db_dist
 (* Result for an actual experiment *)
 (*
 type exp_result = {
@@ -77,10 +78,12 @@ let mwem data param init =
       (* res in *)
     in
 
+(*
     let dump_qerror () =
     (* Print error *)
       printf "Query Error: \n";
       Array.iteri (printf "q%2d: %f\n%!") (Array.init nqry score) in
+*)
 
     let rec get_badquery niter =
       let badquery = exp_mech em_eps nqry score         in
@@ -135,3 +138,55 @@ let mwem data param init =
   (* Util.map_in_place (fun v -> v /. tf) avg; *)
   (* avg *)
 
+(* Non-private version *)
+let mw data param init =
+  let open Printf in
+  printf "Starting!\n%!";
+
+  let t       = param.exp_steps                    in
+
+  let n       = float_of_int data.sd_info.db_elem  in
+
+  let realdb  = data.sd_qcache                     in
+  let qry     = data.sd_queries                    in
+  let nqry    = Array.length qry                   in
+
+  (* Initial dist *)
+  let d       = init                               in
+
+  for i = 1 to t do
+    printf "\nStep: %d\n%!" i;
+
+    (* Multiplying by n *)
+    let error    = Array.init nqry (fun idx ->
+      abs_float (realdb.(idx) -. eval_bquery d qry.(idx)) *.n) in
+
+    let badquery = Util.foldi_left (fun idx r _ -> if error.(idx) >= error.(r) then idx else r) 0 error  in
+    let m = realdb.(badquery)       in
+
+    (* qi is [0..1] *)
+    let qi        = eval_bquery d qry.(badquery)        in
+    printf "Worst query: %d with error %f\n%!" badquery (realdb.(badquery) -. qi);
+
+    let c_err = m -. qi                                 in
+    printf "Corrected private error: %f \n%!" c_err;
+
+    (* MW update rule *)
+    let mw_update idx v =
+      let up_factor =
+          exp ( (ev_bquery idx qry.(badquery) ) *.
+                c_err /. 2.0 )
+      in
+      (* printf "Update for %d (%f) with uf: %f\n" idx d.(idx) up_factor; *)
+      v *. up_factor
+    in
+
+    (* Arbitrary! *)
+    let k_l = 20 in
+    for k = 1 to k_l do
+      Util.mapi_in_place mw_update d;
+      d_norm_in_place d
+    done;
+
+  done;
+  d
