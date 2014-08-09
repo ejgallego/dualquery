@@ -39,7 +39,6 @@ open Mw
 (* val mwem : exp_data -> exp_param -> exp_result *)
 let mwem data param init =
   let open Printf in
-  printf "Starting!\n%!";
 
   let t       = param.exp_steps                    in
   let tf      = float_of_int t                     in
@@ -141,7 +140,6 @@ let mwem data param init =
 (* Non-private version *)
 let mw data param init =
   let open Printf in
-  printf "Starting!\n%!";
 
   let t       = param.exp_steps                    in
 
@@ -162,14 +160,12 @@ let mw data param init =
       abs_float (realdb.(idx) -. eval_bquery d qry.(idx)) *.n) in
 
     let badquery = Util.foldi_left (fun idx r _ -> if error.(idx) >= error.(r) then idx else r) 0 error  in
-    let m = realdb.(badquery)       in
 
-    (* qi is [0..1] *)
-    let qi        = eval_bquery d qry.(badquery)        in
-    printf "Worst query: %d with error %f\n%!" badquery (realdb.(badquery) -. qi);
+    let m  = realdb.(badquery)            in
+    let qi = eval_bquery d qry.(badquery) in
 
+    printf "Worst query is %d with error %f\n%!" badquery (realdb.(badquery) -. qi);
     let c_err = m -. qi                                 in
-    printf "Corrected private error: %f \n%!" c_err;
 
     (* MW update rule *)
     let mw_update idx v =

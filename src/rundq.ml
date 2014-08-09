@@ -14,8 +14,10 @@ let main () =
 
   (* Call the actual experiment below *)
 
-  Simple.adult_s ()
+  Simple.adult_red ()
+  (* Simple.ran_bias_mw () *)
 
+  (* Simple.adult_s () *)
   (* Other experiments *)
   (* ML.nf_try () *)
   (* Attributes.ran_bias_ba () *)

@@ -26,8 +26,9 @@ module C = Qcache
 let net_data     = D.mk_exp_data D.network   (D.ran_queries 500000)
 let net_data_s   = D.mk_exp_data D.network_s (D.ran_queries 50000)
 
-let adult_data   = D.mk_exp_data D.adult     (D.ran_queries 300000)
-let adult_data_s = D.mk_exp_data D.adult     (D.ran_queries 30000)
+let adult_data     = D.mk_exp_data D.adult     (D.ran_queries 300000)
+let adult_data_s   = D.mk_exp_data D.adult     (D.ran_queries 30000)
+let adult_data_red = D.mk_exp_data D.adult_red (D.ran_queries 5000)
 
 let ttt_data     = D.mk_exp_data D.tictactoe (D.ran_queries 10000)
 let ttt_bin_data = D.mk_exp_data D.ttt_bin   (D.ran_queries 10000)
@@ -197,6 +198,9 @@ module Simple = struct
   let adult_s () =
     build_simple 0.8 40 1000 adult_data_s
 
+  let adult_red () =
+    build_simple 0.4 30 100 adult_data_red
+
   let ttt () =
     build_simple 1.2 100 300 ttt_data
 
@@ -233,6 +237,13 @@ module Simple = struct
     let data     = mk_rbias_data elem 1000 100000      in
     let oracle   = o_rand data                         in
     let params   = mk_exp_params 1.0 97 1200 oracle    in
+    do_exp_single 3 (data, params)
+
+  let ran_bias_mw () =
+    let elem     = 10000                               in
+    let data     = mk_rbias_data elem 16 1000          in
+    let oracle   = o_rand data                         in
+    let params   = mk_exp_params 0.6 100 50 oracle     in
     do_exp_single 3 (data, params)
 
 end

@@ -91,30 +91,42 @@ let print_res s data res =
 
 (* Do an experiment n times and print the results *)
 let do_exp n engine data param =
-
-  let open Array in
+  let open Printf in
+  let open Array  in
 
   (* Initial distribution *)
   let exps = init n (fun idx ->
 
+    printf "Starting experiment run: %d\n" idx;
     (* Init code, we could initialize in a different way *)
-    let usize   = Util.pow 2 data.sd_info.db_bin_att     in
-    let init    = DbD.uniform_dist usize                 in
+    let usize     = Util.pow 2 data.sd_info.db_bin_att     in
+    let init      = DbD.uniform_dist usize                 in
 
-    let iqry    = DbD.eval_bqueries init data.sd_queries in
-    let ires    = analyze_error data.sd_qcache iqry      in
+    let iqry      = DbD.eval_bqueries init data.sd_queries in
+    let ires      = analyze_error data.sd_qcache iqry      in
     print_res "Initial" data ires;
 
-    let dist = engine data param init                    in
-    let rqry = DbD.eval_bqueries dist data.sd_queries    in
-    let res  = analyze_error data.sd_qcache rqry         in
-    print_res "Final" data res;
+    let dist      = engine data param init                 in
+    let rqry      = DbD.eval_bqueries dist data.sd_queries in
+    let res       = analyze_error data.sd_qcache rqry      in
+    print_res "Final  " data res;
     ires, res
-  )                                                      in
-  let iexps, exps = map fst exps, map snd exps           in
-  let ires, res = average_exp iexps, average_exp exps    in
+  )                                                        in
+  let iexps, exps = map fst exps, map snd exps             in
+  let ires, res   = average_exp iexps, average_exp exps    in
   append_res data ires res;
-  print_res "Total" data res
+  print_res "Total" data res;
+  printf "\n"
+
+let print_all_res () =
+  let open Printf in
+  printf "\n All exps\n";
+  List.iter (fun (d, ir, r) ->
+    print_res "Initial" d ir;
+    print_res "Final  " d r
+  ) !all_exp
+
+(* Actual experiments *)
 
 let do_rbias_exp nelem atts nqry eps t =
   let data  = mk_rbias_data nelem atts nqry       in
@@ -127,14 +139,6 @@ let do_adult_exp nqry eps t =
   let param = { exp_eps = eps; exp_steps = t; }   in
   do_exp 3 mwem data param;
   do_exp 3 mw   data param
-
-let print_all_res () =
-  let open Printf in
-  printf "\n All exps\n";
-  List.iter (fun (d, ir, r) ->
-    print_res "Initial" d ir;
-    print_res "Final"   d r
-  ) !all_exp
 
 let main () =
   (* Don't forget this! *)
