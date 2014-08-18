@@ -104,6 +104,8 @@ let ann_db s db =
   compare_stats s stats
 
 let read_db sch file () =
+  parse_res  := [];
+  parse_iter := 0 ;
   let l_db  = parse_file sch file                  in
   let a_db  = Array.of_list l_db                   in
   (* ann_db schema a_db; *)

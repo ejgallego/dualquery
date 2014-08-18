@@ -243,7 +243,7 @@ module Simple = struct
     let elem     = 10000                               in
     let data     = mk_rbias_data elem 16 1000          in
     let oracle   = o_rand data                         in
-    let params   = mk_exp_params 0.6 100 50 oracle     in
+    let params   = mk_exp_params 0.4 30 29 oracle      in
     do_exp_single 3 (data, params)
 
 end
@@ -269,6 +269,23 @@ module Param = struct
 
     Array.iter (fun (s, f) ->
       do_exp_iter s (fun idx -> (5, data, f idx))) e_array
+
+  let adult_red () =
+    let data   = adult_data_red ()                         in
+    let oracle = o_rand data                               in
+    let elem   = d_elem data                               in
+
+
+    (* Simple generator for a fixed epsilon *)
+    let exp_gen idx =
+      let eps    = float_of_int (idx + 1) in
+      let eta    = 0.4                                        in
+      let sample = 35 + idx * 5                               in
+      let step   = Epsilon.calc_iter_eps0 eps eta sample elem in
+      mk_exp_params eta step sample oracle
+    in
+
+    do_exp_iter 5 (fun idx -> (3, data, exp_gen idx))
 
   let network () =
     let data   = C.load_exp_data "qcache/net-q2M.qcache"   in

@@ -12,6 +12,7 @@ val epsilon_0        : float -> int -> int -> int -> float
 
 (* compute sample to meet certain epsilon: eps -> eta -> t -> n -> sample *)
 val calc_sample_eps0 : float -> float -> int -> int -> int
+val calc_iter_eps0   : float -> float -> int -> int -> int
 
 (* (ε,δ) utilities *)
 

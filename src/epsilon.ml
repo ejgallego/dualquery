@@ -22,6 +22,14 @@ let calc_sample_eps0 eps eta t n =
   let f_sample = eps *. n /. (eta *. t *. (t -. 1.0)) in
   Util.best_int_of_float f_sample
 
+(* Compute the number of iterations given a target epsilon *)
+let calc_iter_eps0 eps eta s n =
+  let s = float_of_int s                              in
+  let n = float_of_int n                              in
+
+  let f_iter = sqrt ( (n *. eps /. (s *. eta)) +. 0.25) +. 0.5 in
+  Util.best_int_of_float f_iter
+
 let epsilon_delta_core delta eta t s n =
   let g  = 2.0 *. eta /. n      in
   let m  = s *. t *. (t -. 1.0) in

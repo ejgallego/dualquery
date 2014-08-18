@@ -131,22 +131,28 @@ let print_all_res () =
 let do_rbias_exp nelem atts nqry eps t =
   let data  = mk_rbias_data nelem atts nqry       in
   let param = { exp_eps = eps; exp_steps = t; }   in
-  do_exp 3 mwem data param;
-  do_exp 3 mw   data param
+  do_exp 3 mwem data param
+  (* do_exp 3 mw   data param *)
 
-let do_adult_exp nqry eps t =
+let do_adult_exp times nqry eps t =
   let data  = mk_adult_data nqry                  in
   let param = { exp_eps = eps; exp_steps = t; }   in
-  do_exp 3 mwem data param;
-  do_exp 3 mw   data param
+  do_exp times mwem data param
+  (* do_exp 3 mw   data param *)
 
 let main () =
   (* Don't forget this! *)
   Random.self_init ();
 
-  do_rbias_exp 10000 16 1000 1.0 12;
-  do_adult_exp 5000 1.0 14;
+  (* do MW adult_red (avg over 3 runs) with eps from 1 to 5 in 1
+     steps, number of queries 5000, steps = 15 *)
+  for eps = 1 to 5 do
+    do_adult_exp 3 5000 (float_of_int eps) 14
+  done;
   print_all_res ()
+
+  (* do_rbias_exp 10000 16 1000 (1.0 12; *)
+  (* do_rbias_exp 10000 16 1000 1.0 12; *)
 
 let res =
   try main ();

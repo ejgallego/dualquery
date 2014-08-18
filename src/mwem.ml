@@ -119,7 +119,7 @@ let mwem data param init =
     in
 
     (* Arbitrary! *)
-    let k_l = 20 in
+    let k_l = 100 in
     for k = 1 to k_l do
       Util.mapi_in_place mw_update d;
       d_norm_in_place d
@@ -136,7 +136,9 @@ let mwem data param init =
   (* Util.map_in_place (fun v -> v /. tf) avg; *)
   (* avg *)
 
+(***********************************************************************)
 (* Non-private version *)
+
 let mw data param init =
   let open Printf in
 

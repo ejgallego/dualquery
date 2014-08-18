@@ -14,7 +14,7 @@ let main () =
 
   (* Call the actual experiment below *)
 
-  Simple.adult_red ()
+  Param.adult_red ()
   (* Simple.ran_bias_mw () *)
 
   (* Simple.adult_s () *)
