@@ -34,7 +34,6 @@ type exp_result = {
 *)
 
 open Expm
-open Mw
 
 (* val mwem : exp_data -> exp_param -> exp_result *)
 let mwem data param init =
@@ -72,7 +71,7 @@ let mwem data param init =
     (* Multiplying by n *)
     let score idx =
       (* let res =  *)
-      abs_float (realdb.(idx) -. eval_bquery d qry.(idx)) *.n (* in *)
+      abs_float (realdb.(idx) -. eval_bquery d qry.(idx)) *. n (* in *)
       (* printf "Score for query %d: %f \n%!" idx res; *)
       (* res in *)
     in
