@@ -80,14 +80,15 @@ let average_exp (e_arr : exp_error array) =
     err_max = sum_max /. n_elems;
   }
 
-let all_exp : (exp_data * exp_error * exp_error) list ref = ref []
+let all_exp : (exp_data * exp_param * exp_error * exp_error) list ref = ref []
 
-let append_res data ires res =
-  all_exp := (data, ires, res) :: !all_exp
+let append_res data param ires res =
+  all_exp := (data, param, ires, res) :: !all_exp
 
-let print_res s data res =
+let print_res s data param res =
   let open Printf in
-  Printf.printf "%s Avg/Max Error for %s: %f/%f\n" s data.sd_info.db_name res.err_avg res.err_max
+  let nqry = Array.length data.sd_queries in
+  Printf.printf "%s: Name: %s: Nqry: %d Eps: %f Avg Err:%f Max Err: %f\n" s data.sd_info.db_name nqry param.exp_eps res.err_avg res.err_max
 
 (* Do an experiment n times and print the results *)
 let do_exp n engine data param =
@@ -98,32 +99,33 @@ let do_exp n engine data param =
   let exps = init n (fun idx ->
 
     printf "Starting experiment run: %d\n" idx;
+
     (* Init code, we could initialize in a different way *)
     let usize     = Util.pow 2 data.sd_info.db_bin_att     in
     let init      = DbD.uniform_dist usize                 in
 
     let iqry      = DbD.eval_bqueries init data.sd_queries in
     let ires      = analyze_error data.sd_qcache iqry      in
-    print_res "Initial" data ires;
+    print_res "Initial" data param ires;
 
     let dist      = engine data param init                 in
     let rqry      = DbD.eval_bqueries dist data.sd_queries in
     let res       = analyze_error data.sd_qcache rqry      in
-    print_res "Final  " data res;
+    print_res "Final  " data param res;
     ires, res
   )                                                        in
   let iexps, exps = map fst exps, map snd exps             in
   let ires, res   = average_exp iexps, average_exp exps    in
-  append_res data ires res;
-  print_res "Total" data res;
+  append_res data param ires res;
+  print_res "Total" data param res;
   printf "\n"
 
 let print_all_res () =
   let open Printf in
   printf "\n All exps\n";
-  List.iter (fun (d, ir, r) ->
-    print_res "Initial" d ir;
-    print_res "Final  " d r
+  List.iter (fun (d, p, ir, r) ->
+    print_res "Initial" d p ir;
+    print_res "Final  " d p r
   ) !all_exp
 
 (* Actual experiments *)
@@ -138,7 +140,31 @@ let do_adult_exp times nqry eps t =
   let data  = mk_adult_data nqry                  in
   let param = { exp_eps = eps; exp_steps = t; }   in
   do_exp times mwem data param
-  (* do_exp 3 mw   data param *)
+
+let do_adult_eps_exp times e_1 e_n step nqry t =
+  let data  = mk_adult_data nqry                  in
+  let iter  = int_of_float @@ (e_n -. e_1 +. 1.0) /. step in
+  for i = 1 to iter do
+    let eps = e_1 +. float_of_int (i - 1) *. step in
+    let param = { exp_eps = eps; exp_steps = t; } in
+    do_exp times mwem data param
+  done
+
+let do_adult_qry_exp times eps t =
+  let nqry  = 5000                                in
+  let data  = mk_adult_data 5000                  in
+  let param = { exp_eps = eps; exp_steps = t; }   in
+
+  let cap_qry data elem =
+    { data with
+      sd_queries = Array.sub data.sd_queries 0 elem;
+      sd_qcache  = Array.sub data.sd_qcache  0 elem;
+    }
+  in
+  for i = 1 to 5 do
+    let cap_data = cap_qry data (nqry - (i - 1) * 900) in
+    do_exp 3 mwem cap_data param
+  done
 
 let main () =
   (* Don't forget this! *)
@@ -146,9 +172,9 @@ let main () =
 
   (* do MW adult_red (avg over 3 runs) with eps from 1 to 5 in 1
      steps, number of queries 5000, steps = 15 *)
-  for eps = 1 to 5 do
-    do_adult_exp 3 5000 (float_of_int eps) 14
-  done;
+  (* do_adult_exp 3 5000 1.0 14; *)
+  (* do_adult_eps_exp 3 2.0 4.0 1.0 5000 14; *)
+  do_adult_qry_exp 3 1.0 14;
   print_all_res ()
 
   (* do_rbias_exp 10000 16 1000 (1.0 12; *)
