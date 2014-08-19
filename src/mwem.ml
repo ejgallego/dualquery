@@ -42,7 +42,8 @@ let mwem data param init =
   let t       = param.exp_steps                    in
   let tf      = float_of_int t                     in
 
-  let n       = float_of_int data.sd_info.db_elem  in
+  let elem    = data.sd_info.db_elem               in
+  let n       = float_of_int elem                  in
 
   let tot_eps = param.exp_eps                      in
   let em_eps  = tot_eps /. (2.0 *. tf)             in
@@ -51,6 +52,9 @@ let mwem data param init =
   let realdb  = data.sd_qcache                     in
   let qry     = data.sd_queries                    in
   let nqry    = Array.length qry                   in
+
+  printf "Starting MWEM: Eps=%f, T=%d, n=%d, em_eps=%f, lap_eps=%f, Q=%d"
+    tot_eps t elem em_eps lap_eps nqry;
 
   (* Universe size *)
   (* let usize   = Util.pow 2 data.sd_info.db_bin_att in *)
@@ -106,10 +110,10 @@ let mwem data param init =
     printf "Worst query: %d with error %f\n%!" badquery (realdb.(badquery) -. qi);
 
     let c_err = m -. qi                                          in
-    printf "Corrected private error: %f \n%!" c_err;
+    printf "Corrected private error: %f, the update factor will be: %f \n%!" c_err (exp (c_err /. 2.0));
 
     (* MW update rule *)
-    let mw_update idx v =
+    let _mw_update idx v =
       let up_factor =
           exp ( (ev_bquery idx qry.(badquery) ) *.
                 c_err /. 2.0 )
@@ -119,10 +123,22 @@ let mwem data param init =
     in
 
     (* Arbitrary! *)
-    let k_l = 100 in
+    let k_l = 20 in
     for k = 1 to k_l do
-      Util.mapi_in_place mw_update d;
-      d_norm_in_place d
+      let update q m =
+        let qi    = eval_bquery d qry.(q) in
+        let c_err = (m -. qi) /. 2.0      in
+        let mw_update idx v =
+          let up_factor = exp ( ev_bquery idx qry.(q) *. c_err)
+          in
+          v *. up_factor
+        in
+        Util.mapi_in_place mw_update d;
+        d_norm_in_place d
+      in
+      iter update qval
+      (* Util.mapi_in_place _mw_update d; *)
+      (* d_norm_in_place d *)
     done;
 
     (* Add the sum of this one to the result *)
