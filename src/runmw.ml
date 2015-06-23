@@ -117,7 +117,7 @@ let do_exp n engine data param =
   let iexps, exps = map fst exps, map snd exps             in
   let ires, res   = average_exp iexps, average_exp exps    in
   append_res data param ires res;
-  print_res "Total" data param res;
+  print_res "Total  " data param res;
   printf "\n"
 
 let print_all_res () =
@@ -173,8 +173,8 @@ let main () =
   (* do MW adult_red (avg over 3 runs) with eps from 1 to 5 in 1
      steps, number of queries 5000, steps = 15 *)
   (* do_adult_exp 3 5000 1.0 14; *)
-  (* do_adult_eps_exp 3 2.0 4.0 1.0 5000 14; *)
-  do_adult_qry_exp 3 1.0 14;
+  (* do_adult_qry_exp 3 1.0 14; *)
+  do_adult_eps_exp 3 1.0 2.0 1.0 5000 14;
   print_all_res ()
 
   (* do_rbias_exp 10000 16 1000 (1.0 12; *)

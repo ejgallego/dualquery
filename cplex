@@ -1,3 +1,3 @@
 #!/bin/bash
 set -x
-rlwrap /opt/ibm/ILOG/CPLEX_Studio1251/cplex/bin/x86_sles10_4.1/cplex $@
+rlwrap /opt/ibm/ILOG/CPLEX_Studio1251/cplex/bin/x86-64_sles10_4.1/cplex $@

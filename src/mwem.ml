@@ -123,22 +123,22 @@ let mwem data param init =
     in
 
     (* Arbitrary! *)
-    let k_l = 20 in
+    let k_l = 1 in
     for k = 1 to k_l do
-      let update q m =
-        let qi    = eval_bquery d qry.(q) in
-        let c_err = (m -. qi) /. 2.0      in
-        let mw_update idx v =
-          let up_factor = exp ( ev_bquery idx qry.(q) *. c_err)
-          in
-          v *. up_factor
-        in
-        Util.mapi_in_place mw_update d;
-        d_norm_in_place d
-      in
-      iter update qval
-      (* Util.mapi_in_place _mw_update d; *)
-      (* d_norm_in_place d *)
+      (* let update q m = *)
+      (*   let qi    = eval_bquery d qry.(q) in *)
+      (*   let c_err = (m -. qi) /. 2.0      in *)
+      (*   let mw_update idx v = *)
+      (*     let up_factor = exp ( ev_bquery idx qry.(q) *. c_err) *)
+      (*     in *)
+      (*     v *. up_factor *)
+      (*   in *)
+      (*   Util.mapi_in_place mw_update d; *)
+      (*   d_norm_in_place d *)
+      (* in *)
+      (* iter update qval *)
+      Util.mapi_in_place _mw_update d;
+      d_norm_in_place d
     done;
 
     (* Add the sum of this one to the result *)

@@ -24,6 +24,9 @@ let d_sample d k =
   let sum  = sum d            in
   let prob = Random.float sum in
 
+(*
+  Debug code:
+*)
   let open Array  in
   let open Printf in
 
