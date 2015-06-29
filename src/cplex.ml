@@ -39,6 +39,26 @@ let norm_query q = match q with
     let correction_factor = (not_int_of_bool l1s + not_int_of_bool l2s + not_int_of_bool l3s) in
     (ls l1s, l1i, ls l2s, l2i, ls l3s, l3i, 1, -3+correction_factor)
 
+(****************************** PARITIES *************************************)
+(* Return the sign and number of variables, the query factor and the corrected right side *)
+let norm_query_p q = match q with
+  | BPQuery (l1, l2, l3) ->
+    let (l1s, l1i) = decomp_literal l1 in
+    let (l2s, l2i) = decomp_literal l2 in
+    let (l3s, l3i) = decomp_literal l3 in
+    let ls = var_sgn true              in
+    let correction_factor = (not_int_of_bool l1s + not_int_of_bool l2s + not_int_of_bool l3s) in
+    (ls l1s, l1i, ls l2s, l2i, ls l3s, l3i, -correction_factor - 1)
+
+  | BNQuery (l1, l2, l3) ->
+    let (l1s, l1i) = decomp_literal l1 in
+    let (l2s, l2i) = decomp_literal l2 in
+    let (l3s, l3i) = decomp_literal l3 in
+    let ls = var_sgn false             in
+    let correction_factor = (not_int_of_bool l1s + not_int_of_bool l2s + not_int_of_bool l3s) in
+    (ls l1s, l1i, ls l2s, l2i, ls l3s, l3i, correction_factor)
+(**************************** END PARITIES ***********************************)
+
 let string_of_sgn b = if b then "+" else "-"
 
 let string_of_query qnum q =
@@ -48,6 +68,15 @@ let string_of_query qnum q =
     (string_of_sgn l2s) l2i
     (string_of_sgn l3s) l3i
     qf qnum rs
+(****************************** PARITIES *************************************)
+let string_of_query_p qnum q =
+  let (l1s, l1i, l2s, l2i, l3s, l3i, rs) = norm_query_p q in
+  sprintf "%s x%d %s x%d %s x%d - 2p%d - q%d = %d"
+    (string_of_sgn l1s) l1i
+    (string_of_sgn l2s) l2i
+    (string_of_sgn l3s) l3i
+    qnum qnum rs
+(**************************** END PARITIES ***********************************)
 
 (* Original version for non-negated literals *)
 
@@ -103,6 +132,16 @@ let print_query out qnum q =
     (string_of_sgn l2s) l2i
     (string_of_sgn l3s) l3i
     qf qnum rs
+
+(****************************** PARITIES *************************************)
+let print_query_p out qnum q =
+  let (l1s, l1i, l2s, l2i, l3s, l3i, rs) = norm_query_p q in
+  fprintf out "%s x%d %s x%d %s x%d - 2p%d - q%d = %d\n"
+    (string_of_sgn l1s) l1i
+    (string_of_sgn l2s) l2i
+    (string_of_sgn l3s) l3i
+    qnum qnum rs
+(**************************** END PARITIES ***********************************)
 
 let print_queries out q = Array.iteri (print_query out) q
 
