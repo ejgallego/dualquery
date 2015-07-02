@@ -8,7 +8,7 @@
 (* Common params *)
 
 (* Number of cores for paralell query evaluation *)
-let n_cores = 4
+let n_cores = 8
 
 (* Parameters *)
 let timeout :  int ref = ref 30

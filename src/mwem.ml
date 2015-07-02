@@ -35,6 +35,13 @@ type exp_result = {
 
 open Expm
 
+let htbl_keys t =
+  let open Hashtbl in
+  fold (fun k _ r -> k :: r) t []
+
+let max_index arr =
+  Util.foldi_left (fun idx r v -> if v >= arr.(r) then idx else r) 0 arr
+
 (* val mwem : exp_data -> exp_param -> exp_result *)
 let mwem data param init =
   let open Printf in
@@ -46,111 +53,61 @@ let mwem data param init =
   let n       = float_of_int elem                  in
 
   let tot_eps = param.exp_eps                      in
-  let em_eps  = tot_eps /. (2.0 *. tf)             in
-  let lap_eps = 2.0 *. tf /. tot_eps               in
+  let lap_eps = (2.0 *. tf) /. (tot_eps *. n)      in
 
   let realdb  = data.sd_qcache                     in
   let qry     = data.sd_queries                    in
   let nqry    = Array.length qry                   in
 
-  printf "Starting MWEM: Eps=%f, T=%d, n=%d, em_eps=%f, lap_eps=%f, Q=%d"
-    tot_eps t elem em_eps lap_eps nqry;
-
-  (* Universe size *)
-  (* let usize   = Util.pow 2 data.sd_info.db_bin_att in *)
+  printf "Starting MWEM: Eps=%f, T=%d, n=%d, lap_eps=%f, Q=%d"
+    tot_eps t elem lap_eps nqry;
 
   (* Initial dist *)
-  let d       = init                               in
-
-  (* Unused accumulator *)
-  (* let avg     = uniform_dist usize                 in *)
+  let db_syn = init                                in
 
   (* We follow HLM and will cache the worst performing qry *)
   let open Hashtbl in
+  (* Noisy real value of the query *)
   let qval : (int, float) t = create t in
 
+  let noisy_max () =
+    let res_syn   = eval_bqueries db_syn qry                                              in
+    let true_err  = Array.mapi (fun idx res_v -> abs_float @@ realdb.(idx) -. res_v) res_syn in
+    (* Do not select previously measured queries *)
+    let keys      = htbl_keys qval                                                        in
+    List.iter (fun idx -> true_err.(idx) <- 0.0) keys;
+    let noisy_err = Array.map (fun err -> err +. Laplace.lap_noise lap_eps) true_err      in
+    let bad_qry = max_index noisy_err in
+    printf "Bad query is: %d with err: %f\n" bad_qry noisy_err.(bad_qry);
+    bad_qry
+  in
+
+  let update_d q_idx err e_idx v =
+    let up_factor = exp ( err *. (ev_bquery e_idx qry.(q_idx)) /. 2.0 )
+    in v *. up_factor
+  in
+
+  let update_all () =
+    let reps = 5 in
+    for i = 1 to reps do
+      (* Measured queries and noisy (true) value *)
+      Hashtbl.iter (fun q_idx q_val ->
+        let qval_curr = eval_bquery db_syn qry.(q_idx) in
+        let q_error   = q_val -. qval_curr             in
+        Util.mapi_in_place (update_d q_idx q_error) db_syn
+      ) qval;
+    done;
+    d_norm_in_place db_syn
+  in
+
+  (* Steps of MWEM proper *)
   for i = 1 to t do
     printf "\nStep: %d\n%!" i;
-
-    (* Multiplying by n *)
-    let score idx =
-      (* let res =  *)
-      abs_float (realdb.(idx) -. eval_bquery d qry.(idx)) *. n (* in *)
-      (* printf "Score for query %d: %f \n%!" idx res; *)
-      (* res in *)
-    in
-
-(*
-    let dump_qerror () =
-    (* Print error *)
-      printf "Query Error: \n";
-      Array.iteri (printf "q%2d: %f\n%!") (Array.init nqry score) in
-*)
-
-    let rec get_badquery niter =
-      let badquery = exp_mech em_eps nqry score         in
-      if mem qval badquery then
-        if niter = 0 then begin
-          printf "[warning] Repeating query selection %d!!!\n" badquery;
-          (* dump_qerror (); *)
-          badquery, find qval badquery
-        end
-        else
-          get_badquery (niter - 1)
-      else
-        (* We noise the real value *)
-        let m = realdb.(badquery) +. Laplace.lap_noise lap_eps /. n in
-        add qval badquery m;
-        badquery, m
-    in
-    let badquery, m = get_badquery 2                    in
-
-    (* qi is [0..1] *)
-    let qi        = eval_bquery d qry.(badquery)        in
-    printf "Worst query: %d with error %f\n%!" badquery (realdb.(badquery) -. qi);
-
-    let c_err = m -. qi                                          in
-    printf "Corrected private error: %f, the update factor will be: %f \n%!" c_err (exp (c_err /. 2.0));
-
-    (* MW update rule *)
-    let _mw_update idx v =
-      let up_factor =
-          exp ( (ev_bquery idx qry.(badquery) ) *.
-                c_err /. 2.0 )
-      in
-      (* printf "Update for %d (%f) with uf: %f\n" idx d.(idx) up_factor; *)
-      v *. up_factor
-    in
-
-    (* Arbitrary! *)
-    let k_l = 1 in
-    for k = 1 to k_l do
-      (* let update q m = *)
-      (*   let qi    = eval_bquery d qry.(q) in *)
-      (*   let c_err = (m -. qi) /. 2.0      in *)
-      (*   let mw_update idx v = *)
-      (*     let up_factor = exp ( ev_bquery idx qry.(q) *. c_err) *)
-      (*     in *)
-      (*     v *. up_factor *)
-      (*   in *)
-      (*   Util.mapi_in_place mw_update d; *)
-      (*   d_norm_in_place d *)
-      (* in *)
-      (* iter update qval *)
-      Util.mapi_in_place _mw_update d;
-      d_norm_in_place d
-    done;
-
-    (* Add the sum of this one to the result *)
-    (* Util.mapi_in_place (fun idx v -> v +. d.(idx)) avg; *)
-
+    let bad_idx = noisy_max ()                         in
+    Hashtbl.add qval bad_idx (realdb.(bad_idx) -. (Laplace.lap_noise lap_eps));
+    update_all ()
   done;
-  (* For now we just release d *)
-  d
-
-  (* Do the average *)
-  (* Util.map_in_place (fun v -> v /. tf) avg; *)
-  (* avg *)
+  db_syn
 
 (***********************************************************************)
 (* Non-private version *)

@@ -150,6 +150,14 @@ let do_adult_eps_exp times e_1 e_n step nqry t =
     do_exp times mwem data param
   done
 
+(* Vary the number of attributes, try with random:
+
+let do_adult_att_exp times eps t =
+  let data  = mk_adult_data 5000                  in
+  let param = { exp_eps = eps; exp_steps = t; }   in
+
+*)
+
 let do_adult_qry_exp times eps t =
   let nqry  = 5000                                in
   let data  = mk_adult_data 5000                  in
@@ -174,7 +182,7 @@ let main () =
      steps, number of queries 5000, steps = 15 *)
   (* do_adult_exp 3 5000 1.0 14; *)
   (* do_adult_qry_exp 3 1.0 14; *)
-  do_adult_eps_exp 3 1.0 2.0 1.0 5000 14;
+  do_adult_eps_exp 3 1.0 5.0 1.0 10000 15;
   print_all_res ()
 
   (* do_rbias_exp 10000 16 1000 (1.0 12; *)

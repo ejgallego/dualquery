@@ -28,7 +28,7 @@ let net_data_s   = D.mk_exp_data D.network_s (D.ran_queries 50000)
 
 let adult_data     = D.mk_exp_data D.adult     (D.ran_queries 300000)
 let adult_data_s   = D.mk_exp_data D.adult     (D.ran_queries 30000)
-let adult_data_red = D.mk_exp_data D.adult_red (D.ran_queries 5000)
+let adult_data_red = D.mk_exp_data D.adult_red (D.ran_queries 10000)
 
 let ttt_data     = D.mk_exp_data D.tictactoe (D.ran_queries 10000)
 let ttt_bin_data = D.mk_exp_data D.ttt_bin   (D.ran_queries 10000)
@@ -275,7 +275,6 @@ module Param = struct
     let oracle = o_rand data                               in
     let elem   = d_elem data                               in
 
-
     (* Simple generator for a fixed epsilon *)
     let exp_gen idx =
       let eps    = float_of_int (idx + 1) in
@@ -286,6 +285,15 @@ module Param = struct
     in
 
     do_exp_iter 5 (fun idx -> (3, data, exp_gen idx))
+
+  let adult_red_params () =
+    let data   = adult_data_red ()                         in
+    let oracle = o_rand data                               in
+    let elem   = d_elem data                               in
+
+    (* Simple generator for a fixed epsilon *)
+    let (s, f) = IH.fixed_eps0 1.0 0.2 2.0 8 20 120 10 elem oracle in
+    do_exp_iter s (fun idx -> (3, data, f idx))
 
   let network () =
     let data   = C.load_exp_data "qcache/net-q2M.qcache"   in

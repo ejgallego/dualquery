@@ -13,8 +13,9 @@ let main () =
   Random.self_init ();
 
   (* Call the actual experiment below *)
+  (* Param.adult_red () *)
+  Param.adult_red_params ()
 
-  Param.adult_red ()
   (* Simple.ran_bias_mw () *)
 
   (* Simple.adult_s () *)
