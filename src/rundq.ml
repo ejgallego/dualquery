@@ -9,6 +9,7 @@
 open Support
 open Query
 open Dq
+open Cplex
 
 (* open Data *)
 

@@ -20,6 +20,9 @@ module type Ops = sig
   (* Needed for efficient evaluation *)
   val eval_row   : D.db_row -> query -> float
 
+  (* Print to cplex *)
+  val pp_cplex : Format.formatter -> int -> query -> unit
+
 end
 
 module type Qry = sig
@@ -34,7 +37,17 @@ module type Qry = sig
   val eval_row  : D.db_row -> query       -> float
   val eval_db   : D.db     -> query       -> float
   val eval_db_n : D.db     -> query array -> float array
+
+  (* Print to cplex *)
+  val pp_cplex : Format.formatter -> int -> query -> unit
+
 end
+
+(* At some point this should work:
+
+   module BinQry : Qry with module D = BinDb
+
+*)
 
 (* Make a module form QueryOps *)
 module Make (O : Ops) : Qry
@@ -44,10 +57,10 @@ module Make (O : Ops) : Qry
 (* Query types and their corresponding instantiations *)
 
 (* 3-way marginals *)
-module MarQ  : Qry
+(* module MarQ  : Qry *)
 module MarBQ : Qry
 
 (* Parity queries *)
-module ParQ  : Qry
-module ParBQ : Qry
+(* module ParQ  : Qry *)
+(* module ParBQ : Qry *)
 

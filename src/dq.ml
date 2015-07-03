@@ -49,6 +49,7 @@ module Make (Q : Qry) = struct
 
   module Q = Q
   module Updater = Qdist.Make(Q)
+  module CPlex   = Cplex.Make(Q)
 
   type exp_data = {
     sd_info     : db_info;
@@ -98,7 +99,7 @@ module Make (Q : Qry) = struct
       printf "**** Sampling finished in: %f\n%!" ((Unix.time ()) -. s_time);
 
       let p_time    = Unix.time ()                                in
-      (* let syn_elem  = run_cplex sarray atts oracle                in *)
+      let syn_elem  = CPlex.run_cplex sarray atts oracle          in
       let rec syn_elem () = syn_elem () in
       let a_time    = Unix.time ()                                in
 

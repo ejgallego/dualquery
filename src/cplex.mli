@@ -10,7 +10,13 @@ open Oracle
 open Query
 open Log
 
-module Q : Qry
+module type Cplex = sig
 
-val init_cplex : ctx -> unit
-val run_cplex  : Q.query array -> int -> oracle -> Q.D.db_row
+  module Q : Qry
+
+  val init_cplex : ctx -> unit
+  val run_cplex  : Q.query array -> int -> oracle -> Q.D.db_row
+
+end
+
+module Make (Q : Qry) : Cplex with module Q = Q

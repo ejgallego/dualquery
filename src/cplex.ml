@@ -5,15 +5,20 @@
    See the LICENSE file for details on licensing.
 *)
 
+open Db
+open Oracle
 open Query
-open Printf
+open Log
+open Format
 
 (* CPlex is quite picky about the input format, so we must "normalize"
    the queries prior to writing them, such that no constant in on the
    left side. Recall that constants on the left side are introduced by
    the negated literals *)
 
+(*
 let var_sgn b1 b2 = b1 = b2
+
 
 let decomp_literal l = match l with
   | PVar i -> (true,  i)
@@ -59,71 +64,12 @@ let norm_query_p q = match q with
     (ls l1s, l1i, ls l2s, l2i, ls l3s, l3i, correction_factor)
 (**************************** END PARITIES ***********************************)
 
+ *)
+
+let norm_query   _ = (true, 0, true, 0, true, 0, 0, 0)
+let norm_query_p _ = (true, 0, true, 0, true, 0, 0)
+
 let string_of_sgn b = if b then "+" else "-"
-
-let string_of_query qnum q =
-  let (l1s, l1i, l2s, l2i, l3s, l3i, qf, rs) = norm_query q in
-  sprintf "%s x%d %s x%d %s x%d - %dq%d >= %d"
-    (string_of_sgn l1s) l1i
-    (string_of_sgn l2s) l2i
-    (string_of_sgn l3s) l3i
-    qf qnum rs
-(****************************** PARITIES *************************************)
-let string_of_query_p qnum q =
-  let (l1s, l1i, l2s, l2i, l3s, l3i, rs) = norm_query_p q in
-  sprintf "%s x%d %s x%d %s x%d - 2p%d - q%d = %d"
-    (string_of_sgn l1s) l1i
-    (string_of_sgn l2s) l2i
-    (string_of_sgn l3s) l3i
-    qnum qnum rs
-(**************************** END PARITIES ***********************************)
-
-(* Original version for non-negated literals *)
-
-(* let string_of_query qnum q = match q with *)
-(*   | PQuery (l1, l2, l3) -> *)
-(*     sprintf "%s + %s + %s - 3q%d >= 0" *)
-(*                            (string_of_literal l1) *)
-(*                            (string_of_literal l2) *)
-(*                            (string_of_literal l3) *)
-(*                            qnum *)
-
-(*   | NQuery (l1, l2, l3) -> *)
-(*     sprintf "-%s -%s -%s - q%d >= -3" *)
-(*                            (string_of_literal l1) *)
-(*                            (string_of_literal l2) *)
-(*                            (string_of_literal l3) *)
-(*                            qnum *)
-
-let string_of_queries q = Array.mapi string_of_query q
-
-let string_of_qvar i _ = "q" ^ (string_of_int i)
-
-let string_of_qvars q =
-  Array.mapi string_of_qvar q
-
-let string_of_goal q =
-  let goal = String.concat "\n + " (Array.to_list (string_of_qvars q)) in
-  goal
-
-let rec string_of_atts n =
-  if n = 0 then "x0"
-  else
-    "x" ^ (string_of_int n) ^ "\n " ^ (string_of_atts (n-1))
-
-let string_of_cplex_program file_name q n_att =
-  "Problem name: " ^ file_name ^
-  "\n\nMaximize\nobj: " ^ (string_of_goal q) ^
-  "\n\nSubject To\n" ^ (String.concat "\n" (Array.to_list (string_of_queries q))) ^
-  "\n\nBinaries\n" ^ (String.concat "\n " (Array.to_list (string_of_qvars q))) ^
-  " " ^ (string_of_atts (n_att -1)) ^
-  "\nEnd\n"
-
-let write_cplex file_name q n_att =
-  let oc = open_out file_name in
-  let contents = string_of_cplex_program file_name q n_att in
-  output_string oc contents;
-  close_out oc
 
 let print_query out qnum q =
   let (l1s, l1i, l2s, l2i, l3s, l3i, qf, rs) = norm_query q in
@@ -143,13 +89,22 @@ let print_query_p out qnum q =
     qnum qnum rs
 (**************************** END PARITIES ***********************************)
 
-let print_queries out q = Array.iteri (print_query out) q
+module type Cplex = sig
 
-let print_qvar out i _ =
-  fprintf out "q%d\n" i
+  module Q : Qry
 
-let print_qvars out q =
-  Array.iteri (print_qvar out) q
+  val init_cplex : Log.ctx -> unit
+  val run_cplex  : Q.query array -> int -> oracle -> Q.D.db_row
+
+end
+
+module Make (Q : Qry) = struct
+
+module Q = Q
+
+let print_qry_n out q   = Array.iteri (Q.pp_cplex out) q
+let print_qvar  out i _ = fprintf out "q%d\n" i
+let print_qvars out q   = Array.iteri (print_qvar out) q
 
 let rec print_atts out n =
   if n = 0 then
@@ -183,11 +138,12 @@ Binaries
 %a%a
 
 End
-" name print_goal q print_queries q print_qvars q print_atts (n_att - 1)
+" name print_goal q print_qry_n q print_qvars q print_atts (n_att - 1)
 
 let print_cplex file_name q n_att =
-  let oc = open_out file_name in
-  print_program oc file_name q n_att;
+  let oc   = open_out file_name          in
+  let ofmt = formatter_of_out_channel oc in
+  print_program ofmt file_name q n_att;
   close_out oc
 
 (* TODO *)
@@ -208,11 +164,11 @@ exception CPlex of int
 
 let bool_of_int n =
   if n = 1 then
-    true else
-    if n = 0
-    then false
-    else
-      raise (CPlex n)
+    true
+  else if n = 0 then
+    false
+  else
+    raise (CPlex n)
 
 let process_line s_line att_array =
   if Str.string_match cplex_regexp s_line 0 then
@@ -242,6 +198,10 @@ module AttSet = Set.Make(
     type t = int
   end )
 
+(*
+
+XXX: Sanity check disabled but would be good to reenable it
+
 let att_lit l s = match l with
   | PVar v
   | NVar v -> AttSet.add v s
@@ -255,6 +215,7 @@ let atts_in_queries q = Array.fold_left att_in_query AttSet.empty q
 let tag_atts q atts =
   let attl = AttSet.elements (atts_in_queries q) in
   List.iter (fun e -> atts.(e) <- (-2)) attl
+*)
 
 (* WARNING!!!! In some very rare cases, CPlex will return something
    like -4.00000E-30 instead of 0. I don't know how frequent is this,
@@ -281,8 +242,8 @@ write %s
 "
 
 let write_cplex_config fin fout timeout =
-  let os = open_out_gen [Open_creat;Open_trunc;Open_text;Open_wronly] 0o644 cplex_cfg_file in
-  fprintf os "read %s
+  let os   = open_out_gen [Open_creat;Open_trunc;Open_text;Open_wronly] 0o644 cplex_cfg_file in
+  Printf.fprintf os "read %s
 set workmem 11000
 set mip strategy file 2
 set timelimit %d
@@ -311,8 +272,10 @@ let run_cplex q n_att oracle =
   read_cplex f_out atts;
   debug "**** Results read\n";
   sanity_check atts;
-  atts
 
-open Log
+  (* Hack to avoid the type system!!! *)
+  Q.D.from_bin atts
 
 let init_cplex ctx = ()
+
+end
