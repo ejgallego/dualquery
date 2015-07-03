@@ -23,15 +23,15 @@ module C = Qcache
 
 (* let msadult5k = mk_exp_data  D.msadult (Q.prandom 50000) *)
 
-let net_data     = D.mk_exp_data D.network   (D.ran_queries 500000)
-let net_data_s   = D.mk_exp_data D.network_s (D.ran_queries 50000)
+let net_data       = D.mk_exp_data D.network   (D.ran_queries 500000)
+let net_data_s     = D.mk_exp_data D.network_s (D.ran_queries 50000)
 
 let adult_data     = D.mk_exp_data D.adult     (D.ran_queries 300000)
 let adult_data_s   = D.mk_exp_data D.adult     (D.ran_queries 30000)
 let adult_data_red = D.mk_exp_data D.adult_red (D.ran_queries 10000)
 
-let ttt_data     = D.mk_exp_data D.tictactoe (D.ran_queries 10000)
-let ttt_bin_data = D.mk_exp_data D.ttt_bin   (D.ran_queries 10000)
+let ttt_data       = D.mk_exp_data D.tictactoe (D.ran_queries 10000)
+let ttt_bin_data   = D.mk_exp_data D.ttt_bin   (D.ran_queries 10000)
 
 (* small helpers *)
 let d_elem data = data.Dq.sd_info.Db.db_elem

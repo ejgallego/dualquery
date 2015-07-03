@@ -10,6 +10,8 @@ open Attribute
 
 (* A db schema is a list of attributes *)
 type db_schema = att_info array
+
+(* A map of regular to binary attributes, (start, size) *)
 type att_map   = (int * int)  array
 
 (* Information about the database *)

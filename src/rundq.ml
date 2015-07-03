@@ -7,14 +7,15 @@
 
 open Icml
 open Support
+open Query
 
 let main () =
   (* Don't forget this! *)
   Random.self_init ();
 
   (* Call the actual experiment below *)
-  (* Param.adult_red () *)
-  Param.adult_red_params ()
+  Param.adult_red ()
+  (* Param.adult_red_params () *)
 
   (* Simple.ran_bias_mw () *)
 
