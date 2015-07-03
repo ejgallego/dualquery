@@ -11,8 +11,22 @@ open Support
 (* open Data *)
 open Dq
 
+module BinQry = Query.Make(Query.BinOps)
+module BinDq  = Dq.Make(BinQry)
+
+open BinDq
+
+let rec any () = any ()
+
+(* let b_exp_data () = { *)
+(*   sd_info    = any (); *)
+(*   sd_queries = any (); *)
+(*   sd_qcache  = any (); *)
+(* } *)
+
 let main () =
 
+  let _res = BinDq.dq (any ()) (any ()) in
   ()
   (* Don't forget this! *)
   (* Random.self_init (); *)

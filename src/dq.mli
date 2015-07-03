@@ -9,6 +9,15 @@ open Db
 open Query
 open Oracle
 
+(* Parameters for an actual experiment *)
+type exp_param = {
+  exp_eta     : float;
+  exp_steps   : int;
+  exp_sample  : int;
+  exp_timeout : int;
+  exp_oracle  : (oracle_type * oracle);
+}
+
 module type Dq = sig
 
   module Q : Qry
@@ -17,15 +26,6 @@ module type Dq = sig
     sd_info     : db_info;
     sd_queries  : Q.query array;
     sd_qcache   : float array;
-  }
-
-  (* Parameters for an actual experiment *)
-  type exp_param = {
-    exp_eta     : float;
-    exp_steps   : int;
-    exp_sample  : int;
-    exp_timeout : int;
-    exp_oracle  : (oracle_type * oracle);
   }
 
   (* Result for an actual experiment *)

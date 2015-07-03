@@ -63,3 +63,17 @@ module Make (O : Ops) : Qry = struct
     Array.map (eval_query db)
 
 end
+
+module BinOps = struct
+
+  type query = bool
+  module D = BinDb
+
+  (* val gen_query  : db_schema -> query *)
+  let gen_query () = false
+  let neg_query qry = not qry
+
+  (* Needed for efficient evaluation *)
+  let eval_row row qry = 0.0
+
+end

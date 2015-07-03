@@ -39,3 +39,5 @@ end
 module Make (O : Ops) : Qry
        (* with module D   = O.D    and *)
        (*      type query = O.query *)
+
+module BinOps : Ops
