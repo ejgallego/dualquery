@@ -44,17 +44,10 @@ module Make (O : Ops) : Qry
 (* Query types and their corresponding instantiations *)
 
 (* 3-way marginals *)
-module MarO  : Ops
-module MarBO : Ops
-
 module MarQ  : Qry
 module MarBQ : Qry
 
-(*
-(* Parity *)
-module ParO  : Ops
-module ParBO : Ops
-
+(* Parity queries *)
 module ParQ  : Qry
 module ParBQ : Qry
-*)
+

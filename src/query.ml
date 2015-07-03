@@ -65,53 +65,45 @@ module Make (O : Ops) : Qry = struct
 
 end
 
-(* 3-way Marginals *)
+(* 3-way Marginals and Parities *)
+
+module type LiteralOps = sig
+
+    type literal
+    module D : Db
+
+    val gen_lit   : unit     -> literal
+    val eval_lit  : D.db_row -> literal -> bool
+    val merge_lit : bool -> bool -> bool -> bool
+
+end
 
 (* Common Helpers *)
 let tof_att  b     = if b then 1.0 else 0.0
 let not_att  a     = not a
 let and3_att a b c = a && b && c
+let par3_att a b c =  (a && b && not c) ||     (c && a && not b)
+                   || (b && c && not a) || not (a || b ||     c)
 
-(* XXX: We could factorize most of this code too *)
-module MarO = struct
+module MakeLitOps (L : LiteralOps) : Ops = struct
 
-  (* 3-way marginal queries over integer attributes *)
-  type literal  = LEq of int * int | LNeq of int * int
-  type marginal = literal * literal * literal
+  type marginal = L.literal * L.literal * L.literal
   type query    = PQuery of marginal | NQuery of marginal
 
-  module D = IntDb
-
-  let gen_literal () (* n db_schema *) =
-    (* XXX *)
-    let att  = 20 in
-    let av   = 20 in
-    (* let att    = Random.int n                      in *)
-    (* let ai     = db_schema.(att)                   in *)
-    (* let av     = Random.int (ai.att_max + 1)       in *)
-    if Random.bool () then
-      LEq (att, av)
-    else
-      LNeq (att, av)
+  module D = L.D
 
   let gen () =
-    let inner = (gen_literal (),
-                 gen_literal (),
-                 gen_literal ()) in
+    let inner = (L.gen_lit (), L.gen_lit (), L.gen_lit ()) in
     PQuery inner
 
   let neg qry = match qry with
   | PQuery tm -> NQuery tm
   | NQuery tm -> PQuery tm
 
-  let eval_lit row lit = match lit with
-    | LEq  (n, e) -> row.(n) = e
-    | LNeq (n, e) -> row.(n) <> e
-
   let eval_tm row (l1, l2, l3) =
-    and3_att (eval_lit row l1)
-             (eval_lit row l2)
-             (eval_lit row l3)
+    L.merge_lit (L.eval_lit row l1)
+                (L.eval_lit row l2)
+                (L.eval_lit row l3)
 
   let eval_row row qry = match qry with
     | PQuery tm -> tof_att          (eval_tm row tm)
@@ -119,52 +111,95 @@ module MarO = struct
 
 end
 
-module MarQ = Make(MarO)
+(* XXX: We could factorize even more *)
+module MarLit = struct
 
-module MarBO = struct
+  (* 3-way marginal queries over integer attributes *)
+  type literal  = LEq of int * int | LNeq of int * int
+  module D = IntDb
+  let merge_lit = and3_att
 
-  type literal  = PVar of int | NVar of int
-  type marginal = literal * literal * literal
-  type query    = PQuery of marginal | NQuery of marginal
+  let gen_lit () (* n db_schema *) =
+    (* XXX *)
+    let att  = 20 in
+    let av   = 20 in
+    (* let att    = Random.int n                      in *)
+    (* let ai     = db_schema.(att)                   in *)
+    (* let av     = Random.int (ai.att_max + 1)       in *)
+    if Random.bool ()
+    then LEq (att, av)
+    else LNeq (att, av)
 
-  module D = BinDb
-
-  let generate_literal n_att =
-    if Random.bool () then
-      PVar (Random.int n_att)
-    else
-      NVar (Random.int n_att)
-
-  let gen () (* db_s *) =
-    (* XXXX *)
-    (* let n_att    = Array.length db_s        in *)
-    let n_att = 20 in
-    let marginal = (generate_literal n_att,
-                    generate_literal n_att,
-                    generate_literal n_att) in
-    PQuery marginal
-
-  let neg qry = match qry with
-  | PQuery tm -> NQuery tm
-  | NQuery tm -> PQuery tm
-
-  let eval_row_lit row lit = match lit with
-  (* We must use the .() notation for -unsafe to work *)
-  | PVar n ->          row.(n)
-  | NVar n -> not_att  row.(n)
-
-  let eval_marginal row (l1, l2, l3) =
-    and3_att (eval_row_lit row l1)
-             (eval_row_lit row l2)
-             (eval_row_lit row l3)
-
-  let eval_row row qry = match qry with
-    | PQuery tm -> tof_att          (eval_marginal row tm)
-    | NQuery tm -> tof_att (not_att (eval_marginal row tm))
+  let eval_lit row lit = match lit with
+    | LEq  (n, e) -> row.(n) = e
+    | LNeq (n, e) -> row.(n) <> e
 
 end
 
-module MarBQ = Make(MarBO)
+module MarBLit = struct
 
-(* Parity *)
-let a = 3
+  type literal  = PVar of int | NVar of int
+  module D = BinDb
+  let merge_lit = and3_att
+
+  let gen_lit () =
+    (* XXX *)
+    let n_att = 20 in
+    if Random.bool ()
+    then PVar (Random.int n_att)
+    else NVar (Random.int n_att)
+
+  let eval_lit row lit = match lit with
+  | PVar n ->          row.(n)
+  | NVar n -> not_att  row.(n)
+
+end
+
+module ParLit = struct
+
+  (* 3-way parity queries over integer attributes *)
+  type literal  = LEq of int * int | LNeq of int * int
+  module D = IntDb
+  let merge_lit = par3_att
+
+  let gen_lit () (* n db_schema *) =
+    (* XXX *)
+    let att  = 20 in
+    let av   = 20 in
+    (* let att    = Random.int n                      in *)
+    (* let ai     = db_schema.(att)                   in *)
+    (* let av     = Random.int (ai.att_max + 1)       in *)
+    if Random.bool ()
+    then LEq (att, av)
+    else LNeq (att, av)
+
+  let eval_lit row lit = match lit with
+    | LEq  (n, e) -> row.(n) = e
+    | LNeq (n, e) -> row.(n) <> e
+
+end
+
+module ParBLit = struct
+
+  type literal  = PVar of int | NVar of int
+  module D = BinDb
+  let merge_lit = par3_att
+
+  let gen_lit () =
+    (* XXX *)
+    let n_att = 20 in
+    if Random.bool ()
+    then PVar (Random.int n_att)
+    else NVar (Random.int n_att)
+
+  let eval_lit row lit = match lit with
+  | PVar n ->          row.(n)
+  | NVar n -> not_att  row.(n)
+
+end
+
+module MarQ  = Make(MakeLitOps(MarLit))
+module MarBQ = Make(MakeLitOps(MarBLit))
+module ParQ  = Make(MakeLitOps(ParLit))
+module ParBQ = Make(MakeLitOps(ParBLit))
+
