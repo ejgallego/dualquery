@@ -7,12 +7,12 @@
 
 (* open Icml *)
 open Support
-(* open Query *)
-(* open Data *)
+open Query
 open Dq
 
-module BinQry = Query.Make(Query.BinOps)
-module BinDq  = Dq.Make(BinQry)
+(* open Data *)
+
+module BinDq  = Dq.Make(MarBQ)
 
 open BinDq
 

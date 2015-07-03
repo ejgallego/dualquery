@@ -56,15 +56,6 @@ module Make (Q : Qry) = struct
     sd_qcache   : float array;
   }
 
-  (* Parameters for an actual experiment *)
-  type exp_param = {
-    exp_eta     : float;
-    exp_steps   : int;
-    exp_sample  : int;
-    exp_timeout : int;
-    exp_oracle  : (oracle_type * oracle);
-  }
-
   (* Result for an actual experiment *)
   type exp_result = {
     res_db       : Q.D.db;

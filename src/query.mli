@@ -14,8 +14,8 @@ module type Ops = sig
   module D : Db
 
   (* XXX: Db schema needed *)
-  val gen_query  : unit -> query
-  val neg_query  : query -> query
+  val gen : unit  -> query
+  val neg : query -> query
 
   (* Needed for efficient evaluation *)
   val eval_row   : D.db_row -> query -> float
@@ -27,12 +27,13 @@ module type Qry = sig
   type   query
   module D : Db
 
-  val gen_nquery : int -> query array
-  val neg_nquery : query array -> query array
+  (* val gen_nquery : int -> db_schema -> query array *)
+  val gen_n : int -> query array
+  val neg_n : query array -> query array
 
-  val eval_elem   : D.db_row -> query       -> float
-  val eval_query  : D.db     -> query       -> float
-  val eval_nquery : D.db     -> query array -> float array
+  val eval_row  : D.db_row -> query       -> float
+  val eval_db   : D.db     -> query       -> float
+  val eval_db_n : D.db     -> query array -> float array
 end
 
 (* Make a module form QueryOps *)
@@ -40,4 +41,20 @@ module Make (O : Ops) : Qry
        (* with module D   = O.D    and *)
        (*      type query = O.query *)
 
-module BinOps : Ops
+(* Query types and their corresponding instantiations *)
+
+(* 3-way marginals *)
+module MarO  : Ops
+module MarBO : Ops
+
+module MarQ  : Qry
+module MarBQ : Qry
+
+(*
+(* Parity *)
+module ParO  : Ops
+module ParBO : Ops
+
+module ParQ  : Qry
+module ParBQ : Qry
+*)
