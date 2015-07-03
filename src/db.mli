@@ -6,12 +6,13 @@
 *)
 
 open Array
-
 open Attribute
 
 (* A db schema is a list of attributes *)
 type db_schema = att_info array
-type att_map   = (int * int) array
+
+(* A map of regular to binary attributes, (start, size) *)
+(* type att_map   = (int * int) array *)
 
 (* Information about the database *)
 type db_info = {
@@ -21,9 +22,50 @@ type db_info = {
   db_elem    : int;
 }
 
-(* A database is a MxN matrix of attributes for now, an attribute is
-   just an integer. How to interpret it depends on the schema.
+(* Binary databases *)
+module type Db = sig
+
+  type t
+
+  type db_row = t      array
+  type db     = db_row array
+
+  val mk_info : string -> db -> db_info
+
+  (* Random generation *)
+  val gen     : unit -> t
+
+end
+
+module BinDb : (Db with type t = bool)
+module IntDb : (Db with type t = int)
+
+(* vs *)
+(* module BinDb : (Db with type t := bool) *)
+
+(*
+module type Db = sig
+
+  type t
+  type schema = att_info
+
+  type db_row
+
+  To generalize to nfArray we'd need to add row and db type, for
+  now we assume db's to be "t array array"
+
+  type db_row
+  type db
+
+  val make_row   : int -> (int -> db_elem) -> db_row
+  val get_row    : db -> int -> db_row
+  val fold_rows  : ('a -> db_row -> 'a) -> 'a -> db -> 'a
+end
 *)
+
+
+(*
+
 type db_row = int array
 type db     = db_row array
 
@@ -45,3 +87,4 @@ val generate_bin_db_bias : int -> int -> bin_db
 val mk_db_info : string -> db -> att_map -> db_info
 
 val print_db : out_channel -> bin_db -> unit
+ *)

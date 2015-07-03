@@ -8,9 +8,13 @@
 open Db
 open Query
 
-type db_gen       = unit -> db
+module Dq : Dq.Dq
+module Q = Dq.Q
+
+type db_gen       = unit -> Q.D.db
 type data_source  = (string * db_schema * db_gen)
-type query_source = db_schema -> (string * query array)
+
+type query_source = db_schema -> (string * Q.query array)
 
 (* Data sources *)
 val network   : data_source

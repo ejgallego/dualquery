@@ -5,12 +5,10 @@
    See the LICENSE file for details on licensing.
 *)
 
+open Attribute
 open Db
-open Oracle
+open Bdb
 open Query
-open Log
 
-module Q : Qry
+module BQry : Qry
 
-val init_cplex : ctx -> unit
-val run_cplex  : Q.query array -> int -> oracle -> Q.D.db_row

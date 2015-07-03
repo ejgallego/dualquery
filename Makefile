@@ -12,7 +12,13 @@ OCAMLBUILD=ocamlbuild -classic-display $(OCBOPTS)
 
 VERSION=native
 
-all: rundq runmw
+all: rundq
+# all: rundq runmw
+# all: src/$(TARGET).cmo
+
+TARGET=dummy
+src/$(TARGET).cmo:
+	$(OCAMLBUILD) src/$(TARGET).cmo
 
 parmap::
 	make -C parmap

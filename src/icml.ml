@@ -43,6 +43,7 @@ open Db
 open Dq
 module Q = Query
 
+(*
 let mk_rbias_data elem atts nqry =
     let db       = generate_bin_db_bias    atts elem       in
     let qry      = Q.generate_bqueries     atts nqry       in
@@ -54,6 +55,7 @@ let mk_rbias_data elem atts nqry =
       sd_queries = c_qry;
       sd_qcache  = c_qcache;
     }
+*)
 
 (**********************************************************************)
 
@@ -141,9 +143,9 @@ module Writers = struct
 
   let net_data        = D.mk_exp_data D.network         (D.ran_queries 2000000)
   let adult_data      = D.mk_exp_data D.adult           (D.ran_queries 2000000)
-  let netflix_data    = NfArray.mk_netflix_exp_data "data/nf_data.txt" 2000000
+  (* let netflix_data    = NfArray.mk_netflix_exp_data "data/nf_data.txt" 2000000 *)
 
-  let netflix_data_500k    = NfArray.mk_netflix_exp_data "data/nf_data.txt"  500000
+  (* let netflix_data_500k    = NfArray.mk_netflix_exp_data "data/nf_data.txt"  500000 *)
 
   let network () =
     let data = net_data () in
@@ -157,6 +159,7 @@ module Writers = struct
     let data = adult_data () in
     C.save_exp_data data "qcache/adult-q2M.qcache"
 
+(*
   let netflix_500k () =
     let data = netflix_data_500k () in
     C.save_exp_data data "qcache/netflix-q500K.qcache"
@@ -168,7 +171,9 @@ module Writers = struct
   let all () =
     network ();
     adult   ();
+
     netflix ()
+*)
 
   let test_bs () =
     let data   = C.load_exp_data ~cutoff:10000 "qcache/net-q1M.qcache" in
@@ -210,6 +215,7 @@ module Simple = struct
   let bin_toy () =
     build_simple 0.1 1 0 ttt_bin_data
 
+(*
   let netflix () =
     (* let data   = Netflix.mk_netflix_exp_data "data/nf_data-small.txt" 100000  in *)
     (* let data   = NfArray.mk_netflix_exp_data "data/nf_data.txt" 1000000  in *)
@@ -220,6 +226,7 @@ module Simple = struct
     (* Reasonable epsilon of 0.9 *)
     let params = mk_exp_params 0.2 100 278320 oracle           in
     do_exp_single 3 (data, params)
+*)
 
   let net_several () =
     let data   = net_data_s () in
@@ -232,6 +239,7 @@ module Simple = struct
       do_exp_single nr (data, p)
     ) p_array
 
+(*
   let ran_bias () =
     let elem     = 150000                              in
     let data     = mk_rbias_data elem 1000 100000      in
@@ -245,7 +253,7 @@ module Simple = struct
     let oracle   = o_rand data                         in
     let params   = mk_exp_params 0.4 30 29 oracle      in
     do_exp_single 3 (data, params)
-
+*)
 end
 
 (**********************************************************************)
@@ -320,6 +328,7 @@ module Param = struct
     let (s, f) = IH.fixed_eps_delta 0.001 1.0 0.15 0.45 3 500 2000 4 elem oracle in
     do_exp_iter s (fun idx -> (3, data, f idx))
 
+(*
   let nf_s ()     =
     let data   = NfArray.mk_netflix_exp_data "data/nf_data-small.txt" 500000 () in
     let oracle = o_rand data                                                    in
@@ -332,7 +341,6 @@ module Param = struct
     let data   = C.load_exp_data ~cutoff:100000 "qcache/netflix-q500K.qcache"    in
     let oracle = o_rand data                                                    in
     let elem   = d_elem data                                                    in
-
 (*
     let param  = [| (0.1, 150); (0.1, 200); (0.1, 250); (0.1, 300);
 		    (0.2, 100); (0.1, 150); (0.1, 200);
@@ -360,14 +368,16 @@ module Param = struct
     (* let (s, f) = IH.fixed_eps_delta 0.001 1.0 0.4 2.0 9 100 200 5 elem oracle   in *)
     let (s, f) = IH.fixed_eps_delta 0.001 1.0 1.0 2.0 6 200 400 5 elem oracle   in
     do_exp_iter s (fun idx -> (2, data, f idx))
+*)
 
+(*
   let ran_bias () =
     let elem     = 100000                                                       in
     let data     = mk_rbias_data elem 8000 100000                               in
     let oracle   = o_rand data                                                  in
     let (s, f)   = IH.fixed_eps_delta 0.001 1.0 0.2 2.0 5 20 200 5 elem oracle  in
     do_exp_iter s (fun idx -> (2, data, f idx))
-
+*)
 end
 
 (**********************************************************************)
@@ -383,13 +393,14 @@ module Epsilons = struct
     let f      = IH.epsilon 0.001 0.2 1.0 5 elem oracle in
     do_exp_iter 5 (fun idx -> (2, data, f idx))
 
+(*
   let net_s ()  =
     let data   = NfArray.mk_netflix_exp_data "data/nf_data-small.txt" 500000 () in
     let oracle = o_rand data                                                    in
     let elem   = 480489                                                         in
     let f      = IH.epsilon 0.001 1.0 5.0 5 elem oracle                         in
     do_exp_iter 3 (fun idx -> (2, data, f idx))
-
+*)
 
   let net_s_fast () =
     let data  = C.load_exp_data "qcache/net-q2M.qcache"    in
@@ -451,6 +462,7 @@ end
 module Attributes = struct
 
   (* Returns true if the query is using all attributes less than n *)
+(*
   let q_less q n =
     let q_a l = match l with
       | Q.PVar x -> x < n
@@ -515,9 +527,11 @@ module Attributes = struct
       let param  = mk_exp_params eta step sample oracle                            in
       (times, data, param)
     )
+*)
 
   (* We experiment with random biased data varying the number of
      attributes *)
+(*
   let ran_bias () =
     let atts = [| 50; 250; 500; 1000; 2000; 4000; 8000; 16000; 32000|] in
     let nexp = Array.length atts                                       in
@@ -531,7 +545,8 @@ module Attributes = struct
       let param  = mk_exp_params 1.0 100 500 oracle  in
       (2, data, param)
     )
-
+*)
+(*
   let ran_bias_ba () =
     Params.timeout := 600;
 
@@ -559,7 +574,7 @@ module Attributes = struct
       let param  = mk_exp_params eta step sample oracle         in
       (3, data, param)
     )
-
+*)
 end
 
 (**********************************************************************)
@@ -567,6 +582,7 @@ end
 module Size = struct
 
   (* Reasonable numbers for query eval *)
+(*
   let ran_bias () =
     let nqry = 100000                    in
     let atts = 1000                      in
@@ -596,7 +612,7 @@ module Size = struct
       let param  = mk_exp_params eta step sample oracle in
       (3, data, param)
     )
-
+*)
   (*   do_exp_iter nexp (fun idx -> *)
   (*     let atts = atts.(idx)                        in *)
   (*     let data = mk_rbias_data elem atts nqry      in *)

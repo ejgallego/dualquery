@@ -8,16 +8,16 @@
 
 module Ni = Nativeint
 open Binarray
-open Query
+open Bquery
 
-val ba_eval_elem : bin_query -> ba -> int -> float
+val ba_eval_elem : BQry.query -> ba -> int -> float
 
-val ba_eval_query : ba -> bin_query -> float
+val ba_eval_query : ba -> BQry.query -> float
 val ev_norm_in_place : int -> float array -> unit
 
-val ba_eval_bqueries_norm : bool -> ba -> bin_query array -> float array
+val ba_eval_bqueries_norm : bool -> ba -> BQry.query array -> float array
 
-val ba_eval_bqueries_norm_slow : bool -> ba -> bin_query array -> float array
+val ba_eval_bqueries_norm_slow : bool -> ba -> BQry.query array -> float array
 
 val ba_generate_bool_bias :
   ba -> int -> int -> float -> unit

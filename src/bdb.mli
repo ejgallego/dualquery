@@ -6,11 +6,5 @@
 *)
 
 open Db
-open Oracle
-open Query
-open Log
 
-module Q : Qry
-
-val init_cplex : ctx -> unit
-val run_cplex  : Q.query array -> int -> oracle -> Q.D.db_row
+module BinDb : Gen

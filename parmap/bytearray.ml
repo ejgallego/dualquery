@@ -44,18 +44,18 @@ external unsafe_blit_to_string : t -> int -> string -> int -> int -> unit
 let to_string a =
   let l = length a in
   if l > Sys.max_string_length then invalid_arg "Bytearray.to_string" else
-  let s = String.create l in
+  let s = Bytes.create l in
   unsafe_blit_to_string a 0 s 0 l;
   s
 
 let of_string s =
-  let l = String.length s in
+  let l = Bytes.length s in
   let a = create l in
   unsafe_blit_from_string s 0 a 0 l;
   a
 
 let mmap_of_string fd s =
-  let l = String.length s in
+  let l = Bytes.length s in
   let ba = Bigarray.Array1.map_file fd Bigarray.char Bigarray.c_layout true l in
   unsafe_blit_from_string s 0 ba 0 l;
   ba
@@ -66,7 +66,7 @@ let sub a ofs len =
   then
     invalid_arg "Bytearray.sub"
   else begin
-    let s = String.create len in
+    let s = Bytes.create len in
     unsafe_blit_to_string a ofs s 0 len;
     s
   end

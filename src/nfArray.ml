@@ -56,6 +56,7 @@ open Db
 open Dq
 open Query
 open Printf
+
 open Bineval
 
 let mk_db_info elem = {
@@ -77,3 +78,4 @@ let mk_netflix_exp_data file nqry () =
     sd_queries = c_bqry;
     sd_qcache  = c_qcache;
   }
+

@@ -32,7 +32,7 @@ let parsing_schema =
 
 let parsing_schema_reduced =
   (*            name           min max    def step *)
-  [| mk_int_att "age"            0 100      0 10;
+  [| mk_int_att "age"            0 100      0 11;
      mk_int_att "workclass"      0 7        0  3;
      mk_int_att "fnlwgt"         0 1600000  0  3;
   |]

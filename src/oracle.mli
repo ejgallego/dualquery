@@ -6,12 +6,19 @@
    See the LICENSE file for details on licensing.
 *)
 
-type oracle = unit -> Db.bin_db_row
-val zero_oracle   : int -> unit -> bool array
-val random_oracle : int -> unit -> bool array
+open Db
 
-type oracle_type = Zero | Random
+type oracle_type =
+  | Zero
+  | Random
+
 val string_of_oracle : oracle_type -> string
 
-val mk_zero_oracle   : int -> oracle_type * (unit -> bool array)
-val mk_random_oracle : int -> oracle_type * (unit -> bool array)
+(* Binary oracles *)
+type oracle = unit -> BinDb.db_row
+
+val zero_oracle   : int -> unit -> BinDb.db_row
+val random_oracle : int -> unit -> BinDb.db_row
+
+val mk_zero_oracle   : int -> oracle_type * oracle
+val mk_random_oracle : int -> oracle_type * oracle

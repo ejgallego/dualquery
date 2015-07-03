@@ -12,7 +12,6 @@ open Array
 open Db
 open Query
 
-
 (* Array of the weights of each query *)
 type qdist = {
   elem : int;
@@ -26,12 +25,21 @@ type qdist = {
 (* New uniform distribution *)
 val qd_new : int -> qdist
 
-(* qd_update : qdist -> queries -> query_cache -> syn_elem *)
-val qd_update_in_place : qdist -> bin_query array -> float array -> bin_db_row -> float -> unit
-
 (* Stats of the distribution (zeros, min, max) *)
 val qd_stats  : qdist -> (int * float * float)
 
 (* Returns n queries sampled from dist *)
-val qd_nsample     : int -> qdist -> bin_query array -> bin_query array
+val qd_nsample     : int -> qdist -> 'a array -> 'a array
+
+(* Due to efficiency reasons *)
+module type QDUpdater = sig
+
+  module Q : Qry
+
+  (* qd_update : qdist -> queries -> query_cache -> syn_elem *)
+  val qd_update_in_place : qdist -> Q.query array -> float array -> Q.D.db_row -> float -> unit
+
+end
+
+module Make (Q : Qry) : QDUpdater with module Q = Q
 

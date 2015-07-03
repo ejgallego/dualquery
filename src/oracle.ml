@@ -5,6 +5,8 @@
    See the LICENSE file for details on licensing.
 *)
 
+open Db
+
 type oracle_type =
   | Zero
   | Random
@@ -13,7 +15,7 @@ let string_of_oracle o = match o with
   | Zero   -> "zero"
   | Random -> "random"
 
-type oracle = unit -> Db.bin_db_row
+type oracle = unit -> BinDb.db_row
 
 (* An oracle returns a element of the database  *)
 let random_oracle att () =

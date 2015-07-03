@@ -13,6 +13,7 @@ open Query
 
 (* Array of the weights of each query *)
 type qdist = {
+
   elem : int;
   dist : float array ; 			(* The actual distribution *)
 
@@ -34,15 +35,6 @@ let qd_norm_in_place qd =
   let asum = Util.sum qd.dist in
   Util.map_in_place (fun v -> v /. asum) qd.dist
 
-(* Warning, not private! *)
-let qd_update_elem queries query_cache syn_elem eta index qd_elem =
-  let query      = queries.(index)                        in
-  let q_res      = query_cache.(index)                    in
-  let q_res_syn  = eval_bin_elem query syn_elem           in
-  let uf         = exp ((-. eta) *. (q_res_syn -. q_res)) in
-  (* Printf.printf  "Perfomance of query %d on the synthetic db: %f (%f, %f), update factor %G\n" index (q_res_syn -. q_res) q_res_syn q_res uf; *)
-  uf *. qd_elem
-
 (* Warning about precision problems in the distribution *)
 let qd_stats qd = Array.fold_left (fun (nz, min, max) -> fun v ->
   let nz'  = if v = 0.0 then nz + 1 else nz               in
@@ -51,14 +43,37 @@ let qd_stats qd = Array.fold_left (fun (nz, min, max) -> fun v ->
   (nz', min', max')
   ) (0, max_float, min_float) qd.dist
 
-let qd_update_in_place qd queries query_cache syn_elem eta =
+module type QDUpdater = sig
 
-  Util.mapi_in_place (qd_update_elem queries query_cache syn_elem eta) qd.dist;
-  qd_norm_in_place qd;
+  module Q : Qry
 
-  let (nz, min, max) = qd_stats qd in
-  Printf.printf "*** (zeros, min, max) after query update: (%d, %G, %G) \n%!" nz min max
+  (* qd_update : qdist -> queries -> query_cache -> syn_elem *)
+  val qd_update_in_place : qdist -> Q.query array -> float array -> Q.D.db_row -> float -> unit
 
+end
+
+(* Warning, not private! *)
+module Make (Q : Qry) = struct
+
+  module Q = Q
+
+  let qd_update_elem queries query_cache syn_elem eta index qd_elem =
+    let query      = queries.(index)                        in
+    let q_res      = query_cache.(index)                    in
+    let q_res_syn  = Q.eval_elem syn_elem query             in
+    let uf         = exp ((-. eta) *. (q_res_syn -. q_res)) in
+    (* Printf.printf  "Perfomance of query %d on the synthetic db: %f (%f, %f), update factor %G\n" index (q_res_syn -. q_res) q_res_syn q_res uf; *)
+    uf *. qd_elem
+
+  let qd_update_in_place qd queries query_cache syn_elem eta =
+
+    Util.mapi_in_place (qd_update_elem queries query_cache syn_elem eta) qd.dist;
+    qd_norm_in_place qd;
+
+    let (nz, min, max) = qd_stats qd in
+    Printf.printf "*** (zeros, min, max) after query update: (%d, %G, %G) \n%!" nz min max
+
+end
 
 (*************************************************************************)
 (* Sampling *)

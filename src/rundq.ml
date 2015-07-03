@@ -5,16 +5,20 @@
    See the LICENSE file for details on licensing.
 *)
 
-open Icml
+(* open Icml *)
 open Support
-open Query
+(* open Query *)
+(* open Data *)
+open Dq
 
 let main () =
+
+  ()
   (* Don't forget this! *)
-  Random.self_init ();
+  (* Random.self_init (); *)
 
   (* Call the actual experiment below *)
-  Param.adult_red ()
+  (* Param.adult_red () *)
   (* Param.adult_red_params () *)
 
   (* Simple.ran_bias_mw () *)

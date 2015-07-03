@@ -6,31 +6,38 @@
 *)
 
 open Db
-open Oracle
 open Query
+open Oracle
 
-(* Data for a simulation *)
-type exp_data = {
-  sd_info     : db_info;
-  sd_queries  : bin_query array;
-  sd_qcache   : float array;
-}
+module type Dq = sig
 
-(* Parameters for an actual experiment *)
-type exp_param = {
-  exp_eta     : float;
-  exp_steps   : int;
-  exp_sample  : int;
-  exp_timeout : int;
-  exp_oracle  : (oracle_type * oracle);
-}
+  module Q : Qry
 
-(* Result for an actual experiment *)
-type exp_result = {
-  res_db       : bin_db;
-  res_timeout  : int;
-  res_seconds  : int;
-  res_qd_stats : (int * float * float);
-}
+  type exp_data = {
+    sd_info     : db_info;
+    sd_queries  : Q.query array;
+    sd_qcache   : float array;
+  }
 
-val dq : exp_data -> exp_param -> exp_result
+  (* Parameters for an actual experiment *)
+  type exp_param = {
+    exp_eta     : float;
+    exp_steps   : int;
+    exp_sample  : int;
+    exp_timeout : int;
+    exp_oracle  : (oracle_type * oracle);
+  }
+
+  (* Result for an actual experiment *)
+  type exp_result = {
+    res_db       : Q.D.db;
+    res_timeout  : int;
+    res_seconds  : int;
+    res_qd_stats : (int * float * float);
+  }
+
+  val dq : exp_data -> exp_param -> exp_result
+
+end
+
+module Make (Q: Qry) : Dq
