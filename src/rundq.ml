@@ -1,4 +1,5 @@
 (* Copyright (c) 2014, The Trustees of the University of Pennsylvania
+   Copyright (c) 2015, Mines PARISTECH
    All rights reserved.
 
    LICENSE: 3-clause BSD style.
@@ -14,8 +15,11 @@ open Cplex
 (* open Data *)
 
 module BinDq  = Dq.Make(MarBQ)
-
 open BinDq
+
+open Db
+
+let k : BinDb.db = Array.make 1 (Array.make 1 true)
 
 let rec any () = any ()
 

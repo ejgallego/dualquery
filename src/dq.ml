@@ -1,4 +1,6 @@
 (* Copyright (c) 2013, The Trustees of the University of Pennsylvania
+   Copyright (c) 2015, Mines PARISTECH
+
    All rights reserved.
 
    LICENSE: 3-clause BSD style.
@@ -11,8 +13,6 @@ open Printf
 open Db
 open Oracle
 open Query
-
-(* open Cplex *)
 
 (* Parameters for an actual experiment *)
 type exp_param = {
@@ -100,7 +100,6 @@ module Make (Q : Qry) = struct
 
       let p_time    = Unix.time ()                                in
       let syn_elem  = CPlex.run_cplex sarray atts oracle          in
-      let rec syn_elem () = syn_elem () in
       let a_time    = Unix.time ()                                in
 
       if (int_of_float (a_time -. p_time) + 1 >= exp.exp_timeout) then
@@ -109,9 +108,9 @@ module Make (Q : Qry) = struct
 
       printf "**** Updating query distribution\n%!";
 
-      Updater.qd_update_in_place qdist queries query_cache (syn_elem ()) eta;
+      Updater.qd_update_in_place qdist queries query_cache syn_elem eta;
 
-      syn_elem ()
+      syn_elem
     ) in
     let end_time    = Unix.time ()                                in
     {

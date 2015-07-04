@@ -1,4 +1,5 @@
 (* Copyright (c) 2013, The Trustees of the University of Pennsylvania
+   Copyright (c) 2015, Mines PARISTECH
    All rights reserved.
 
    LICENSE: 3-clause BSD style.

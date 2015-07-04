@@ -116,6 +116,10 @@ let and3_att a b c = a && b && c
 let par3_att a b c =  (a && b && not c) ||     (c && a && not b)
                    || (b && c && not a) || not (a || b ||     c)
 
+let string_of_sgn   b = if b then "+" else "-"
+let not_int_of_bool b = if b then 0 else 1
+let var_sgn b1 b2     = b1 = b2
+
 module MakeLitOps (L : BinLitOps) : Ops = struct
 
   type marginal = L.marginal
@@ -141,6 +145,7 @@ module MakeLitOps (L : BinLitOps) : Ops = struct
     | L.NQuery tm -> tof_att (not_att (eval_tm row tm))
 
 
+  (* XXX: Should we use include? *)
   let pp_cplex = L.pp_cplex
 end
 
@@ -163,7 +168,41 @@ module MarBLit = struct
   | PVar n ->          row.(n)
   | NVar n -> not_att  row.(n)
 
-  let pp_cplex fmt nqry qry = ()
+  (* CPlex is quite picky about the input format, so we must
+   * "normalize" the queries prior to writing them, such that no
+   * constant in on the left side. Recall that constants on the left
+   * side are introduced by the negated literals
+   *)
+
+  let decomp_literal l = match l with
+    | PVar i -> (true,  i)
+    | NVar i -> (false, i)
+
+  (* Return the sign and number of variables, the query factor and the corrected right side *)
+  let norm_query q = match q with
+    | PQuery (l1, l2, l3) ->
+       let (l1s, l1i) = decomp_literal l1 in
+       let (l2s, l2i) = decomp_literal l2 in
+       let (l3s, l3i) = decomp_literal l3 in
+       let ls = var_sgn true              in
+       let correction_factor = (not_int_of_bool l1s + not_int_of_bool l2s + not_int_of_bool l3s) in
+       (ls l1s, l1i, ls l2s, l2i, ls l3s, l3i, 3, -correction_factor)
+
+    | NQuery (l1, l2, l3) ->
+       let (l1s, l1i) = decomp_literal l1 in
+       let (l2s, l2i) = decomp_literal l2 in
+       let (l3s, l3i) = decomp_literal l3 in
+       let ls = var_sgn false             in
+       let correction_factor = (not_int_of_bool l1s + not_int_of_bool l2s + not_int_of_bool l3s) in
+       (ls l1s, l1i, ls l2s, l2i, ls l3s, l3i, 1, -3+correction_factor)
+
+  let pp_cplex fmt qnum qry =
+    let (l1s, l1i, l2s, l2i, l3s, l3i, qf, rs) = norm_query qry in
+    Format.fprintf fmt "%s x%d %s x%d %s x%d - %dq%d >= %d\n"
+            (string_of_sgn l1s) l1i
+            (string_of_sgn l2s) l2i
+            (string_of_sgn l3s) l3i
+            qf qnum rs
 
 end
 
@@ -186,12 +225,42 @@ module ParBLit = struct
   | PVar n ->          row.(n)
   | NVar n -> not_att  row.(n)
 
-  let pp_cplex fmt nqry qry = ()
+  let decomp_literal l = match l with
+    | PVar i -> (true,  i)
+    | NVar i -> (false, i)
+
+  (* Return the sign and number of variables, the query factor and the
+     corrected right side *)
+
+  let norm_query_p q = match q with
+  | PQuery (l1, l2, l3) ->
+    let (l1s, l1i) = decomp_literal l1 in
+    let (l2s, l2i) = decomp_literal l2 in
+    let (l3s, l3i) = decomp_literal l3 in
+    let ls = var_sgn true              in
+    let correction_factor = (not_int_of_bool l1s + not_int_of_bool l2s + not_int_of_bool l3s) in
+    (ls l1s, l1i, ls l2s, l2i, ls l3s, l3i, -correction_factor - 1)
+
+  | NQuery (l1, l2, l3) ->
+    let (l1s, l1i) = decomp_literal l1 in
+    let (l2s, l2i) = decomp_literal l2 in
+    let (l3s, l3i) = decomp_literal l3 in
+    let ls = var_sgn false             in
+    let correction_factor = (not_int_of_bool l1s + not_int_of_bool l2s + not_int_of_bool l3s) in
+    (ls l1s, l1i, ls l2s, l2i, ls l3s, l3i, correction_factor)
+
+  let pp_cplex fmt qnum qry =
+    let (l1s, l1i, l2s, l2i, l3s, l3i, rs) = norm_query_p qry in
+    Format.fprintf fmt "%s x%d %s x%d %s x%d - 2p%d - q%d = %d\n"
+    (string_of_sgn l1s) l1i
+    (string_of_sgn l2s) l2i
+    (string_of_sgn l3s) l3i
+    qnum qnum rs
+
 end
 
 module MarBQ = Make(MakeLitOps(MarBLit))
 module ParBQ = Make(MakeLitOps(ParBLit))
-
 
 (* Non-binary cases disabled for now *)
 

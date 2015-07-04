@@ -1,4 +1,5 @@
 (* Copyright (c) 2013, The Trustees of the University of Pennsylvania
+   Copyright (c) 2015, Mines PARISTECH
    All rights reserved.
 
    LICENSE: 3-clause BSD style.
@@ -56,11 +57,11 @@ module Make (O : Ops) : Qry
 
 (* Query types and their corresponding instantiations *)
 
-(* 3-way marginals *)
-(* module MarQ  : Qry *)
+(* 3-way marginals & parities *)
 module MarBQ : Qry
+module ParBQ : Qry
 
 (* Parity queries *)
+(* module MarQ  : Qry *)
 (* module ParQ  : Qry *)
-(* module ParBQ : Qry *)
 
