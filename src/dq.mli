@@ -42,4 +42,4 @@ module type Dq = sig
 
 end
 
-module Make (Q: Qry) : Dq
+module Make (Q: Qry) : Dq with module Q = Q

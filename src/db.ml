@@ -34,6 +34,7 @@ module type Db = sig
 
   (* Random generation *)
   val gen     : unit -> t
+  val gen_db  : int -> int -> db
 
   val from_bin : bool array -> db_row
 
@@ -54,6 +55,7 @@ module BinDb = struct
   }
 
   let gen = Random.bool
+  let gen_db n m = Array.make n (Array.init m (fun _ -> gen ()))
 
   let from_bin x = x
 end
@@ -73,6 +75,7 @@ module IntDb = struct
   }
 
   let gen () = Random.int 20
+  let gen_db n m = Array.make n (Array.init m (fun _ -> gen ()))
 
   let from_bin x = Array.make 1 1
 end

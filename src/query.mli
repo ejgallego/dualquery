@@ -52,14 +52,35 @@ end
 
 (* Make a module form QueryOps *)
 module Make (O : Ops) : Qry
-       (* with module D   = O.D    and *)
-       (*      type query = O.query *)
+       (* with module D   = O.D *)
+        (* and type D.t = O.D.t *)
+        (* and type query = O.query *)
 
 (* Query types and their corresponding instantiations *)
 
+module type BinLitOps = sig
+
+  (* Here is the key ! *)
+
+    type literal
+    type marginal = literal * literal * literal
+    type query    = PQuery of marginal | NQuery of marginal
+
+    val gen_lit   : unit     -> literal
+    val eval_lit  : BinDb.db_row -> literal -> bool
+    val merge_lit : bool -> bool -> bool -> bool
+
+    val pp_cplex : Format.formatter -> int -> query -> unit
+
+end
+
+module MakeLitOps (L : BinLitOps) : Ops
+       (* with module D = BinDb *)
+       (*  and type D.t = bool *)
+
 (* 3-way marginals & parities *)
 module MarBQ : Qry
-module ParBQ : Qry
+module ParBQ : Qry 
 
 (* Parity queries *)
 (* module MarQ  : Qry *)

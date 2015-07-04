@@ -14,27 +14,38 @@ open Cplex
 
 (* open Data *)
 
-module BinDq  = Dq.Make(MarBQ)
-open BinDq
+module Dq = Dq.Make(MarBQ)
+open Dq
 
-open Db
+(* The module hierachy is a bit wrong here *)
+let random_db      : Q.D.db        = Q.D.gen_db 20000 20
+let random_queries : Q.query array = Q.gen_n 1000
 
-let k : BinDb.db = Array.make 1 (Array.make 1 true)
+let ep = {
+  exp_eta     = 0.4;
+  exp_steps   = 30;
+  exp_sample  = 30;
+  exp_timeout = 10;
+  exp_oracle  = (Oracle.Zero, Oracle.random_oracle 20);
+}
 
-let rec any () = any ()
+  (*   sd_info     : db_info; *)
+  (*   sd_queries  : Q.query array; *)
+  (*   sd_qcache   : float array; *)
+  (* } *)
 
-(* let b_exp_data () = { *)
-(*   sd_info    = any (); *)
-(*   sd_queries = any (); *)
-(*   sd_qcache  = any (); *)
-(* } *)
+let ed = {
+  sd_info    = Q.D.mk_info "random_test" random_db;
+  sd_queries = random_queries;
+  sd_qcache  = Q.eval_db_n random_db random_queries;
+}
 
 let main () =
-
-  let _res = BinDq.dq (any ()) (any ()) in
-  ()
   (* Don't forget this! *)
-  (* Random.self_init (); *)
+  Random.self_init ();
+
+  let _res = Dq.dq ed ep in
+  ()
 
   (* Call the actual experiment below *)
   (* Param.adult_red () *)

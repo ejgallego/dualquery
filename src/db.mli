@@ -35,6 +35,7 @@ module type Db = sig
 
   (* Random generation *)
   val gen     : unit -> t
+  val gen_db  : int -> int -> db
 
   val from_bin : bool array -> db_row
 end
