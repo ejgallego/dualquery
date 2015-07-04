@@ -14,8 +14,10 @@ open Cplex
 
 (* open Data *)
 
-module Dq = Dq.Make(MarBQ)
-open Dq
+module DQ = Dq.Make(MarBQ)
+module E  = Exp.Make(DQ)
+
+open DQ
 
 (* The module hierachy is a bit wrong here *)
 let random_db      : Q.D.db        = Q.D.gen_db 20000 20
@@ -44,7 +46,7 @@ let main () =
   (* Don't forget this! *)
   Random.self_init ();
 
-  let _res = Dq.dq ed ep in
+  E.do_exp_single 3 (ed, ep);
   ()
 
   (* Call the actual experiment below *)

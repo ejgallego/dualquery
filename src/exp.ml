@@ -20,7 +20,21 @@ open Analytics
 module L = Log
 
 (* Result of the experiment *)
-type exp_run = (exp_data * exp_param * exp_result * exp_error)
+(* type exp_run = (exp_data * exp_param * exp_result * exp_error) *)
+
+module type Exp = sig
+
+  module E : Dq.Dq
+
+  module Print : sig
+    val print_exp_start_data : Log.ctx -> out_channel -> E.exp_data -> exp_param -> unit
+  end
+
+  (* Num of times -> exp_data, exp_params *)
+  val do_exp_single : int -> (E.exp_data * exp_param) -> unit
+
+end
+
 
 (* Little helper *)
 let mk_exp_params eta steps sample oracle =
@@ -40,23 +54,18 @@ let q_of_number i =
   else
     (string_of_int (i / 1000000)) ^ "." ^ (string_of_int (i / 100000)) ^ "M"
 
-let string_of_exp data param =
-  let db   = data.sd_info           in
-  let name = db.db_name             in
-  let att  = db.db_att              in
-  let batt = db.db_bin_att          in
-  let elem = q_of_number db.db_elem in
-  let nqry = q_of_number (Array.length data.sd_qcache / 2) in
-
-  sprintf "%s-%s[%d\\%d]-q%s-E:%.3f,T:%d,S:%d" name elem att batt nqry
-    param.exp_eta param.exp_steps param.exp_sample
-
-
 let delta = 0.001
+
+module Make (DQ : Dq.Dq) = struct
+
+  module E = DQ
+  open E
+
+  module A = Analytics.Make(DQ)
 
 module Print = struct (* Output functions *)
 
-  let print_exp_start_data ctx out sd exp =
+  let print_exp_start_data ctx out (sd : E.exp_data) exp =
     let name    = sd.sd_info.db_name                        in
     let att     = sd.sd_info.db_att                         in
     let batt    = sd.sd_info.db_bin_att                     in
@@ -64,7 +73,8 @@ module Print = struct (* Output functions *)
     let eta     = exp.exp_eta                               in
     let steps   = exp.exp_steps                             in
     let sample  = exp.exp_sample                            in
-    let qry     = remove_complements sd.sd_queries          in
+    (* let qry     = remove_complements sd.sd_queries          in *)
+    let qry     = sd.sd_queries          in
     let nqry    = Array.length qry                          in
     let epsd    = epsilon_delta delta eta steps sample elem in
     let eps0    = epsilon_0           eta steps sample elem in
@@ -74,7 +84,9 @@ module Print = struct (* Output functions *)
     fprintf out "CPLEX Timeout: %d\n" (!Params.timeout);
 
     let baseline_db  = Array.make 1 (orf ())                             in
-    let baseline_res = eval_bqueries_norm false baseline_db qry          in
+    (* let baseline_res = E.Q.eval_queries_norm false baseline_db qry       in *)
+    (* let baseline_res = Q.eval_db baseline_db qry           in *)
+    let baseline_res = Array.make 20000 0.0           in
     let baseline_err = analyze_error ctx nqry sd.sd_qcache baseline_res  in
 
     fprintf out "Baseline avg: %f; max: %f\n" baseline_err.err_avg baseline_err.err_max;
@@ -92,7 +104,8 @@ module Print = struct (* Output functions *)
     let steps   = param.exp_steps             in
     let sample  = param.exp_sample            in
 
-    let qry     = remove_complements sd.sd_queries in
+    (* let qry     = remove_complements sd.sd_queries in *)
+    let qry     =  sd.sd_queries in
     let nqry    = Array.length qry            in
 
     let epsd    = epsilon_delta delta eta steps sample elem in
@@ -102,7 +115,9 @@ module Print = struct (* Output functions *)
     let oracle_s     = string_of_oracle ot                              in
 
     let baseline_db  = Array.make 1 (orf ())                            in
-    let baseline_res = eval_bqueries_norm false baseline_db qry         in
+    (* XXX: *)
+    let baseline_res = Array.make 20000 0.0 in
+    (* let baseline_res = eval_bqueries_norm false baseline_db qry         in *)
     let baseline_err = analyze_error ctx nqry sd.sd_qcache baseline_res in
 
     let h s        = if header then s ^ ": "  else "" in
@@ -132,6 +147,7 @@ module Print = struct (* Output functions *)
       fprintf out "Error: Zeros found in the query distribution!!!!\n"
 end
 
+(*
 let output_db ctx (_, _, res, _) =
   if !Params.output then
     let out_f = L.open_file ctx "synthethic.db" in
@@ -139,6 +155,7 @@ let output_db ctx (_, _, res, _) =
     L.close_file out_f
   else
     ()
+ *)
 
 let res_analysis idx_ctx (exp_data, exp_param, exp_res) =
 
@@ -146,10 +163,11 @@ let res_analysis idx_ctx (exp_data, exp_param, exp_res) =
     (* Compute error *)
     (* TODO: Must improve this a lot *)
 
-    let qry     = remove_complements exp_data.sd_queries         in
+    (* let qry     = remove_complements exp_data.sd_queries         in *)
+    let qry     = exp_data.sd_queries         in
     let nqry    = Array.length qry                               in
 
-    let syn_res = eval_bqueries_norm false exp_res.res_db qry    in
+    let syn_res = Q.eval_db_n exp_res.res_db qry    in
 
     (* Disable for now         *)
     (* analyze_queries qcache; *)
@@ -161,7 +179,7 @@ let res_analysis idx_ctx (exp_data, exp_param, exp_res) =
     Print.print_exp_result idx_ctx (L.tl idx_ctx) true exp;
 
     (* Write the synthethic db if needed *)
-    output_db idx_ctx exp;
+    (* output_db idx_ctx exp; *)
 
     exp
 
@@ -179,7 +197,7 @@ let do_avg_exp ctx n (exp_data, exp_param) =
     res_analysis idx_ctx (exp_data, exp_param, exp_res)
   ) in
 
-  let avg_exp = average_exp res_array                        in
+  let avg_exp = A.average_exp res_array                        in
   let avg_out = L.open_file ctx
                 (sprintf "avg.txt" )      in
   let all_out = L.open_file ctx
@@ -198,6 +216,7 @@ let do_avg_exp ctx n (exp_data, exp_param) =
   L.close_file all_out;
   L.close_file avg_out
 
+
 (* Simple experiment *)
 let do_exp_single n (exp_data, exp_param) =
 
@@ -208,6 +227,17 @@ let do_exp_single n (exp_data, exp_param) =
   (* Run the same experiment n times *)
   do_avg_exp ctx n (exp_data, exp_param)
 
+
+let string_of_exp data param =
+  let db   = data.sd_info           in
+  let name = db.db_name             in
+  let att  = db.db_att              in
+  let batt = db.db_bin_att          in
+  let elem = q_of_number db.db_elem in
+  let nqry = q_of_number (Array.length data.sd_qcache / 2) in
+
+  sprintf "%s-%s[%d\\%d]-q%s-E:%.3f,T:%d,S:%d" name elem att batt nqry
+    param.exp_eta param.exp_steps param.exp_sample
 
 (* Performs a series of experiments *)
 let do_exp_iter n_exp f_exp =
@@ -228,3 +258,5 @@ let do_exp_iter n_exp f_exp =
     do_avg_exp idx_ctx n (exp_data, exp_param)
   ) in
   ()
+
+end

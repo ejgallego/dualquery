@@ -105,6 +105,21 @@ let analyze_error ctx nqry real_db syn_db =
     err_rel_avg = a_rel_err
   }
 
+open Dq
+
+module type Analytics = sig
+
+module E : Dq
+
+val average_exp   : (E.exp_data * exp_param * E.exp_result * exp_error) array ->
+                    (E.exp_data * exp_param * E.exp_result * exp_error)
+
+end
+
+module Make(DQ : Dq) = struct
+
+  module E = DQ
+
 let average_exp e_arr =
   let n_elems = float_of_int (Array.length e_arr) in
   let sum_max = Array.fold_left (fun n (_, _, _, e) -> n +. e.err_max) 0.0 e_arr in
@@ -117,3 +132,5 @@ let average_exp e_arr =
     } in
   let (a, b, c, _) = Array.get e_arr 0 in
   (a, b, c, n_err)
+
+end

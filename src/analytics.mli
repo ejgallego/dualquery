@@ -18,8 +18,16 @@ type exp_error = {
 (* Disable for now *)
 (* val analyze_queries : float array -> unit *)
 
-(* Number of queries, real_db, syn_db *)
 val analyze_error : Log.ctx -> int -> float array -> float array -> exp_error
 
-val average_exp   : (exp_data * exp_param * exp_result * exp_error) array ->
-                    (exp_data * exp_param * exp_result * exp_error)
+(* Number of queries, real_db, syn_db *)
+module type Analytics = sig
+
+module E : Dq
+
+val average_exp   : (E.exp_data * exp_param * E.exp_result * exp_error) array ->
+                    (E.exp_data * exp_param * E.exp_result * exp_error)
+
+end
+
+module Make(DQ : Dq) : Analytics with module E = DQ
