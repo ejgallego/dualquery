@@ -22,6 +22,12 @@ module type Ops = sig
 
   (* Print to cplex *)
   val pp_cplex : Format.formatter -> int -> query -> unit
+
+  (* Print to binary variables *)
+  val pp_bin_vars : Format.formatter -> int -> query -> unit
+
+  (* Print to binary int variables *)
+  val pp_int_vars : Format.formatter -> int -> query -> unit
 end
 
 module type Qry = sig
@@ -39,6 +45,12 @@ module type Qry = sig
 
   (* Print to cplex, needs global query number for cplex var *)
   val pp_cplex : Format.formatter -> int -> query -> unit
+
+  (* Print to binary variables *)
+  val pp_bin_vars : Format.formatter -> int -> query -> unit
+
+  (* Print to binary int variables *)
+  val pp_int_vars : Format.formatter -> int -> query -> unit
 end
 
 (* Make a module form QueryOps *)
@@ -68,6 +80,10 @@ module Make (O : Ops) : Qry = struct
     Array.map (eval_db db)
 
   let pp_cplex = O.pp_cplex
+
+  let pp_bin_vars = O.pp_bin_vars
+
+  let pp_int_vars = O.pp_int_vars
 end
 
 (* 3-way Marginals and Parities *)
@@ -107,6 +123,9 @@ module type BinLitOps = sig
 
     val pp_cplex : Format.formatter -> int -> query -> unit
 
+    val pp_bin_vars : Format.formatter -> int -> query -> unit
+
+    val pp_int_vars : Format.formatter -> int -> query -> unit
 end
 
 (* Common Helpers *)
@@ -147,6 +166,10 @@ module MakeLitOps (L : BinLitOps) : Ops = struct
 
   (* XXX: Should we use include? *)
   let pp_cplex = L.pp_cplex
+
+  let pp_bin_vars = L.pp_bin_vars
+
+  let pp_int_vars = L.pp_int_vars
 end
 
 module MarBLit = struct
@@ -204,6 +227,9 @@ module MarBLit = struct
             (string_of_sgn l3s) l3i
             qf qnum rs
 
+  let pp_bin_vars fmt qnum _ = Format.fprintf fmt "q%d\n" qnum
+
+  let pp_int_vars _ _ _ = ()
 end
 
 module ParBLit = struct
@@ -251,12 +277,18 @@ module ParBLit = struct
 
   let pp_cplex fmt qnum qry =
     let (l1s, l1i, l2s, l2i, l3s, l3i, rs) = norm_query_p qry in
-    Format.fprintf fmt "%s x%d %s x%d %s x%d - 2p%d - 2r%d - q%d = %d\n"
+    Format.fprintf fmt
+      "%s x%d %s x%d %s x%d - 2p%d - q%d = %d\n0 <= p%d\np%d <= 2\n"
     (string_of_sgn l1s) l1i
     (string_of_sgn l2s) l2i
     (string_of_sgn l3s) l3i
-    qnum qnum qnum rs
+    qnum qnum
+    rs
+    qnum qnum
 
+  let pp_bin_vars fmt qnum _ = Format.fprintf fmt "q%d\n" qnum
+
+  let pp_int_vars fmt qnum _ = Format.fprintf fmt "p%d\n" qnum
 end
 
 module MarBQ = Make(MakeLitOps(MarBLit))

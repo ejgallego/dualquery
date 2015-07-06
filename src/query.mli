@@ -24,6 +24,11 @@ module type Ops = sig
   (* Print to cplex *)
   val pp_cplex : Format.formatter -> int -> query -> unit
 
+  (* Print to binary variables *)
+  val pp_bin_vars : Format.formatter -> int -> query -> unit
+
+  (* Print to binary int variables *)
+  val pp_int_vars : Format.formatter -> int -> query -> unit
 end
 
 module type Qry = sig
@@ -42,6 +47,11 @@ module type Qry = sig
   (* Print to cplex *)
   val pp_cplex : Format.formatter -> int -> query -> unit
 
+  (* Print to binary variables *)
+  val pp_bin_vars : Format.formatter -> int -> query -> unit
+
+  (* Print to binary int variables *)
+  val pp_int_vars : Format.formatter -> int -> query -> unit
 end
 
 (* At some point this should work:
@@ -72,6 +82,11 @@ module type BinLitOps = sig
 
     val pp_cplex : Format.formatter -> int -> query -> unit
 
+    (* Print to binary variables *)
+    val pp_bin_vars : Format.formatter -> int -> query -> unit
+
+    (* Print to binary int variables *)
+    val pp_int_vars : Format.formatter -> int -> query -> unit
 end
 
 module MakeLitOps (L : BinLitOps) : Ops

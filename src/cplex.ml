@@ -28,9 +28,9 @@ module Make (Q : Qry) = struct
 
 module Q = Q
 
-let print_qry_n out q   = Array.iteri (Q.pp_cplex out) q
-let print_qvar  out i _ = fprintf out "q%d\n" i
-let print_qvars out q   = Array.iteri (print_qvar out) q
+let print_qry_n out q      = Array.iteri (Q.pp_cplex out)   q
+let print_bin_vars out q   = Array.iteri (Q.pp_bin_vars out) q
+let print_int_vars out q   = Array.iteri (Q.pp_int_vars out) q
 
 let rec print_atts out n =
   if n = 0 then
@@ -62,9 +62,11 @@ Subject To
 %a
 Binaries
 %a%a
+Generals
+%a
 
 End
-" name print_goal q print_qry_n q print_qvars q print_atts (n_att - 1)
+" name print_goal q print_qry_n q print_bin_vars q print_atts (n_att - 1) print_int_vars q
 
 let print_cplex file_name q n_att =
   let oc   = open_out file_name          in
