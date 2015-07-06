@@ -255,7 +255,7 @@ module ParBLit = struct
     (string_of_sgn l1s) l1i
     (string_of_sgn l2s) l2i
     (string_of_sgn l3s) l3i
-    qnum qnum rs
+    qnum qnum qnum rs
 
 end
 
