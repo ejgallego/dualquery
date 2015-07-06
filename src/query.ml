@@ -251,7 +251,7 @@ module ParBLit = struct
 
   let pp_cplex fmt qnum qry =
     let (l1s, l1i, l2s, l2i, l3s, l3i, rs) = norm_query_p qry in
-    Format.fprintf fmt "%s x%d %s x%d %s x%d - 2p%d - q%d = %d\n"
+    Format.fprintf fmt "%s x%d %s x%d %s x%d - 2p%d - 2r%d - q%d = %d\n"
     (string_of_sgn l1s) l1i
     (string_of_sgn l2s) l2i
     (string_of_sgn l3s) l3i
