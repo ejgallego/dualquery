@@ -107,7 +107,6 @@ module Make (Q : Qry) = struct
       else ();
 
       printf "**** Updating query distribution\n%!";
-
       Updater.qd_update_in_place qdist queries query_cache syn_elem eta;
 
       syn_elem

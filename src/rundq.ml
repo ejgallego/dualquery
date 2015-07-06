@@ -14,7 +14,7 @@ open Cplex
 
 (* open Data *)
 
-module DQ = Dq.Make(MarBQ)
+module DQ = Dq.Make(ParBQ)
 module E  = Exp.Make(DQ)
 
 open DQ
@@ -24,11 +24,11 @@ let random_db      : Q.D.db        = Q.D.gen_db 20000 20
 let random_queries : Q.query array = Q.gen_n 1000
 
 let ep = {
-  exp_eta     = 0.4;
-  exp_steps   = 30;
-  exp_sample  = 30;
+  exp_eta     = 0.8;
+  exp_steps   = 70;
+  exp_sample  = 50;
   exp_timeout = 10;
-  exp_oracle  = (Oracle.Zero, Oracle.random_oracle 20);
+  exp_oracle  = (Oracle.Random, Oracle.random_oracle 20);
 }
 
   (*   sd_info     : db_info; *)
@@ -36,17 +36,23 @@ let ep = {
   (*   sd_qcache   : float array; *)
   (* } *)
 
-let ed = {
-  sd_info    = Q.D.mk_info "random_test" random_db;
-  sd_queries = random_queries;
-  sd_qcache  = Q.eval_db_n random_db random_queries;
+let ed =
+  let info = Q.D.mk_info "random_test" random_db    in
+  let elem = float_of_int info.db_elem              in
+  let norm = Util.map_in_place (fun n -> n /. elem) in
+  let nqry = Q.neg_n random_queries                 in
+ {
+  sd_info    = info;
+  sd_queries = nqry;
+  sd_qcache  = let res = Q.eval_db_n random_db nqry in
+               norm res; res;
 }
 
 let main () =
   (* Don't forget this! *)
   Random.self_init ();
 
-  E.do_exp_single 3 (ed, ep);
+  E.do_exp_single 1 (ed, ep);
   ()
 
   (* Call the actual experiment below *)

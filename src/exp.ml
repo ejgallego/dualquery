@@ -164,10 +164,13 @@ let res_analysis idx_ctx (exp_data, exp_param, exp_res) =
     (* TODO: Must improve this a lot *)
 
     (* let qry     = remove_complements exp_data.sd_queries         in *)
-    let qry     = exp_data.sd_queries         in
+    let qry     = exp_data.sd_queries                            in
+    let elem    = float_of_int @@ exp_data.sd_info.db_elem       in
     let nqry    = Array.length qry                               in
 
-    let syn_res = Q.eval_db_n exp_res.res_db qry    in
+    let syn_res = Q.eval_db_n exp_res.res_db qry                 in
+    (* Normalize *)
+    Util.map_in_place (fun n -> n /. elem) syn_res;
 
     (* Disable for now         *)
     (* analyze_queries qcache; *)
