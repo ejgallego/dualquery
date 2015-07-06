@@ -247,7 +247,7 @@ module ParBLit = struct
     let (l3s, l3i) = decomp_literal l3 in
     let ls = var_sgn false             in
     let correction_factor = (not_int_of_bool l1s + not_int_of_bool l2s + not_int_of_bool l3s) in
-    (ls l1s, l1i, ls l2s, l2i, ls l3s, l3i, correction_factor)
+    (ls l1s, l1i, ls l2s, l2i, ls l3s, l3i, -3+correction_factor)
 
   let pp_cplex fmt qnum qry =
     let (l1s, l1i, l2s, l2i, l3s, l3i, rs) = norm_query_p qry in
