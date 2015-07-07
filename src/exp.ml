@@ -167,12 +167,12 @@ let res_analysis idx_ctx (exp_data, exp_param, exp_res) =
     let nqry    = Array.length qry                               in
 
     let syn_res = Q.eval_db_n exp_res.res_db qry                 in
-    printf "after norm/eval, n_res: %d\n%!" (Array.length exp_res.res_db);
+    (* printf "after norm/eval, n_res: %d\n%!" (Array.length exp_res.res_db); *)
 
     (* Disable for now         *)
     (* analyze_queries qcache; *)
     let exp_err = analyze_error idx_ctx nqry exp_data.sd_qcache syn_res  in
-    printf "after analyze_error\n%!";
+    (* printf "after analyze_error\n%!"; *)
 
     let exp = (exp_data, exp_param, exp_res, exp_err)            in
 

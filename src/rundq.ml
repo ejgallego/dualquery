@@ -13,38 +13,57 @@ open Dq
 open Cplex
 
 (* open Data *)
+(* Porting data is still todo... I have a stash with quite a bit of progress *)
 
-(* module DQ = Dq.Make(MarBQ) *)
-module DQ = Dq.Make(ParBQ)
-module E  = Exp.Make(DQ)
+(* Marginal *)
+module DQM = Dq.Make(MarBQ)
+module EM  = Exp.Make(DQM)
 
-open DQ
-
-(* The module hierachy is a bit wrong here *)
-let random_db      : Q.D.db        = Q.D.gen_db 20000 20
-let random_queries : Q.query array = Q.gen_n 1000 20
+(* Parities *)
+module DQP = Dq.Make(ParBQ)
+module EP  = Exp.Make(DQP)
 
 let ep = {
   exp_eta     = 0.8;
-  exp_steps   = 70;
-  exp_sample  = 50;
-  exp_timeout = 10;
+  exp_steps   = 100;
+  exp_sample  = 90;
+  exp_timeout = 20;
   exp_oracle  = (Oracle.Random, Oracle.random_oracle 20);
 }
 
-  (*   sd_info     : db_info; *)
-  (*   sd_queries  : Q.query array; *)
-  (*   sd_qcache   : float array; *)
-  (* } *)
+(* XXX: We should be able to share the paramteres as the db is the
+   same, but the module hierachy is a bit wrong here *)
+let mar_exp () =
 
-let ed =
-  let info = Q.D.mk_info "random_test" random_db    in
-  let nqry = Q.neg_n random_queries                 in
- {
-  sd_info    = info;
-  sd_queries = nqry;
-  sd_qcache  = Q.eval_db_n random_db nqry;
-}
+  let open DQM                                             in
+  let random_db      : Q.D.db        = Q.D.gen_db 20000 20 in
+  let random_queries : Q.query array = Q.gen_n 1000 20     in
+  let ed =
+    let info = Q.D.mk_info "random_par" random_db     in
+    let nqry = Q.neg_n random_queries                 in
+    {
+      sd_info    = info;
+      sd_queries = nqry;
+      sd_qcache  = Q.eval_db_n random_db nqry;
+    }
+  in
+  EM.do_exp_single 2 (ed, ep)
+
+let par_exp () =
+
+  let open DQP                                             in
+  let random_db      : Q.D.db        = Q.D.gen_db 20000 20 in
+  let random_queries : Q.query array = Q.gen_n 1000 20     in
+  let ed =
+    let info = Q.D.mk_info "random_par" random_db     in
+    let nqry = Q.neg_n random_queries                 in
+    {
+      sd_info    = info;
+      sd_queries = nqry;
+      sd_qcache  = Q.eval_db_n random_db nqry;
+    }
+  in
+  EP.do_exp_single 2 (ed, ep)
 
 let main () =
   (* Don't forget this! *)
@@ -56,7 +75,8 @@ let main () =
   (* Format.printf "qry: "; *)
   (* Array.iter (fun q -> Format.printf "%s\n" (Q.to_string q)) ed.sd_queries; *)
 
-  E.do_exp_single 1 (ed, ep);
+  mar_exp ();
+  par_exp ();
   ()
 
   (* Call the actual experiment below *)
