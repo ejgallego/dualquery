@@ -15,7 +15,7 @@ module type Ops = sig
   module D : Db
 
   (* XXX: Db schema needed *)
-  val gen : unit  -> query
+  val gen : int  -> query
   val neg : query -> query
 
   (* Needed for efficient evaluation *)
@@ -37,7 +37,7 @@ module type Qry = sig
   module D : Db
 
   (* val gen_nquery : int -> db_schema -> query array *)
-  val gen_n : int -> query array
+  val gen_n : int -> int -> query array
   val neg_n : query array -> query array
 
   val eval_row  : D.db_row -> query       -> float
@@ -62,9 +62,8 @@ end
 
 (* Make a module form QueryOps *)
 module Make (O : Ops) : Qry
+       (* with type query = O.query *)
        (* with module D   = O.D *)
-        (* and type D.t = O.D.t *)
-        (* and type query = O.query *)
 
 (* Query types and their corresponding instantiations *)
 
@@ -76,7 +75,7 @@ module type BinLitOps = sig
     type marginal = literal * literal * literal
     type query    = PQuery of marginal | NQuery of marginal
 
-    val gen_lit   : unit     -> literal
+    val gen_lit   : int     -> literal
     val eval_lit  : BinDb.db_row -> literal -> bool
     val merge_lit : bool -> bool -> bool -> bool
 
@@ -90,12 +89,12 @@ module type BinLitOps = sig
 end
 
 module MakeLitOps (L : BinLitOps) : Ops
-       (* with module D = BinDb *)
-       (*  and type D.t = bool *)
+       (* with type query = L.query *)
+       (*  and module D = BinDb *)
 
 (* 3-way marginals & parities *)
 module MarBQ : Qry
-module ParBQ : Qry 
+module ParBQ : Qry
 
 (* Parity queries *)
 (* module MarQ  : Qry *)
