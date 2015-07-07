@@ -40,8 +40,8 @@ module type Db = sig
   val from_bin : bool array -> db_row
 end
 
-module BinDb : (Db with type t = bool)
-module IntDb : (Db with type t = int)
+module BinDb : Db with type t = bool
+module IntDb : Db with type t = int
 
 (* vs *)
 (* module BinDb : (Db with type t := bool) *)
