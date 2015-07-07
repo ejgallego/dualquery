@@ -83,10 +83,10 @@ module Print = struct (* Output functions *)
     fprintf out "Default Oracle: %s\n" (string_of_oracle ot);
     fprintf out "CPLEX Timeout: %d\n" (!Params.timeout);
 
-    let baseline_db  = Array.make 1 (orf ())                             in
+    (* let baseline_db  = Array.make 1 (orf ())                             in *)
     (* let baseline_res = E.Q.eval_queries_norm false baseline_db qry       in *)
     (* let baseline_res = Q.eval_db baseline_db qry           in *)
-    let baseline_res = Array.make 20000 0.0           in
+    let baseline_res = Array.make nqry 0.0                               in
     let baseline_err = analyze_error ctx nqry sd.sd_qcache baseline_res  in
 
     fprintf out "Baseline avg: %f; max: %f\n" baseline_err.err_avg baseline_err.err_max;
@@ -104,8 +104,7 @@ module Print = struct (* Output functions *)
     let steps   = param.exp_steps             in
     let sample  = param.exp_sample            in
 
-    (* let qry     = remove_complements sd.sd_queries in *)
-    let qry     =  sd.sd_queries in
+    let qry     = Q.remove_neg sd.sd_queries  in
     let nqry    = Array.length qry            in
 
     let epsd    = epsilon_delta delta eta steps sample elem in
@@ -114,11 +113,12 @@ module Print = struct (* Output functions *)
     let (ot, orf)    = param.exp_oracle                                 in
     let oracle_s     = string_of_oracle ot                              in
 
-    let baseline_db  = Array.make 1 (orf ())                            in
     (* XXX: *)
-    let baseline_res = Array.make 20000 0.0 in
+    (* let baseline_db  = Array.make 1 (orf ())                            in *)
     (* let baseline_res = eval_bqueries_norm false baseline_db qry         in *)
-    let baseline_err = analyze_error ctx nqry sd.sd_qcache baseline_res in
+    (* let baseline_err = { err_avg = -1.0; err_max = -1.0; err_rel_avg = -1.0; } in *)
+    let baseline_res = Array.make nqry 0.0                               in
+    let baseline_err = analyze_error ctx nqry sd.sd_qcache baseline_res  in
 
     let h s        = if header then s ^ ": "  else "" in
     let (nz, _, _) = res.res_qd_stats                 in
@@ -163,18 +163,16 @@ let res_analysis idx_ctx (exp_data, exp_param, exp_res) =
     (* Compute error *)
     (* TODO: Must improve this a lot *)
 
-    (* let qry     = remove_complements exp_data.sd_queries         in *)
-    let qry     = exp_data.sd_queries                            in
-    let elem    = float_of_int @@ exp_data.sd_info.db_elem       in
+    let qry     = Q.remove_neg exp_data.sd_queries               in
     let nqry    = Array.length qry                               in
 
     let syn_res = Q.eval_db_n exp_res.res_db qry                 in
-    (* Normalize *)
-    Util.map_in_place (fun n -> n /. elem) syn_res;
+    printf "after norm/eval, n_res: %d\n%!" (Array.length exp_res.res_db);
 
     (* Disable for now         *)
     (* analyze_queries qcache; *)
     let exp_err = analyze_error idx_ctx nqry exp_data.sd_qcache syn_res  in
+    printf "after analyze_error\n%!";
 
     let exp = (exp_data, exp_param, exp_res, exp_err)            in
 

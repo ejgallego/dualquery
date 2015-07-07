@@ -14,6 +14,7 @@ open Cplex
 
 (* open Data *)
 
+(* module DQ = Dq.Make(MarBQ) *)
 module DQ = Dq.Make(ParBQ)
 module E  = Exp.Make(DQ)
 
@@ -21,7 +22,7 @@ open DQ
 
 (* The module hierachy is a bit wrong here *)
 let random_db      : Q.D.db        = Q.D.gen_db 20000 20
-let random_queries : Q.query array = Q.gen_n 1000
+let random_queries : Q.query array = Q.gen_n 1000 20
 
 let ep = {
   exp_eta     = 0.8;
@@ -38,19 +39,22 @@ let ep = {
 
 let ed =
   let info = Q.D.mk_info "random_test" random_db    in
-  let elem = float_of_int info.db_elem              in
-  let norm = Util.map_in_place (fun n -> n /. elem) in
   let nqry = Q.neg_n random_queries                 in
  {
   sd_info    = info;
   sd_queries = nqry;
-  sd_qcache  = let res = Q.eval_db_n random_db nqry in
-               norm res; res;
+  sd_qcache  = Q.eval_db_n random_db nqry;
 }
 
 let main () =
   (* Don't forget this! *)
   Random.self_init ();
+
+  (* Format.printf "qcache: "; *)
+  (* Array.iter (fun f -> Format.printf "%f " f) ed.sd_qcache; *)
+
+  (* Format.printf "qry: "; *)
+  (* Array.iter (fun q -> Format.printf "%s\n" (Q.to_string q)) ed.sd_queries; *)
 
   E.do_exp_single 1 (ed, ep);
   ()

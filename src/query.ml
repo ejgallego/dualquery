@@ -31,6 +31,8 @@ module type Ops = sig
 
   (* Print to binary int variables *)
   val pp_int_vars : Format.formatter -> int -> query -> unit
+
+  val to_string : query -> string
 end
 
 module type Qry = sig
@@ -41,6 +43,7 @@ module type Qry = sig
   (* val gen_nquery : int -> db_schema -> query array *)
   val gen_n : int -> int -> query array
   val neg_n : query array -> query array
+  val remove_neg : query array -> query array
 
   val eval_row  : D.db_row -> query       -> float
   val eval_db   : D.db     -> query       -> float
@@ -54,6 +57,8 @@ module type Qry = sig
 
   (* Print to binary int variables *)
   val pp_int_vars : Format.formatter -> int -> query -> unit
+
+  val to_string : query -> string
 end
 
 (* Make a module form QueryOps *)
@@ -73,19 +78,28 @@ module Make (O : Ops) : Qry = struct
     let neg_nqry = Array.map O.neg nqry in
     Array.append nqry neg_nqry
 
+  let remove_neg q =
+    let l = Array.length q / 2 in
+    Array.sub q 0 l
+
   let eval_row = O.eval_row
 
   let eval_db db qry =
     Array.fold_left (fun res row -> res +. (O.eval_row row qry)) 0.0 db
 
-  let eval_db_n db =
-    Array.map (eval_db db)
+  let eval_db_n db qry =
+    let res = Array.map (eval_db db) qry                in
+    let n   = float_of_int @@ (D.mk_info "" db).db_elem in
+    Util.map_in_place (fun r -> r /. n) res;
+    res
 
   let pp_cplex = O.pp_cplex
 
   let pp_bin_vars = O.pp_bin_vars
 
   let pp_int_vars = O.pp_int_vars
+
+  let to_string = O.to_string
 end
 
 (* let eval_queries_norm verbose db queries = *)
@@ -121,20 +135,22 @@ things in common:
 module type BinLitOps = sig
 
   (* Here is the key ! *)
+  type literal
+  type marginal = literal * literal * literal
+  type query    = PQuery of marginal | NQuery of marginal
 
-    type literal
-    type marginal = literal * literal * literal
-    type query    = PQuery of marginal | NQuery of marginal
+  val gen_lit   : int     -> literal
+  val eval_lit  : BinDb.db_row -> literal -> bool
+  val merge_lit : bool -> bool -> bool -> bool
 
-    val gen_lit   : int     -> literal
-    val eval_lit  : BinDb.db_row -> literal -> bool
-    val merge_lit : bool -> bool -> bool -> bool
+  val pp_cplex : Format.formatter -> int -> query -> unit
 
-    val pp_cplex : Format.formatter -> int -> query -> unit
+  val pp_bin_vars : Format.formatter -> int -> query -> unit
 
-    val pp_bin_vars : Format.formatter -> int -> query -> unit
+  val pp_int_vars : Format.formatter -> int -> query -> unit
 
-    val pp_int_vars : Format.formatter -> int -> query -> unit
+  val to_string : literal -> string
+
 end
 
 (* Common Helpers *)
@@ -179,6 +195,12 @@ module MakeLitOps (L : BinLitOps) : Ops = struct
   let pp_bin_vars = L.pp_bin_vars
 
   let pp_int_vars = L.pp_int_vars
+
+  let to_string qry = match qry with
+    | L.PQuery (l1, l2, l3) ->
+       "P" ^ (L.to_string l1) ^ " " ^ (L.to_string l2) ^ " " ^ (L.to_string l3)
+    | L.NQuery (l1, l2, l3) ->
+       "N" ^ (L.to_string l1) ^ " " ^ (L.to_string l2) ^ " " ^ (L.to_string l3)
 end
 
 module MarBLit = struct
@@ -236,6 +258,11 @@ module MarBLit = struct
   let pp_bin_vars fmt qnum _ = Format.fprintf fmt "q%d\n" qnum
 
   let pp_int_vars _ _ _ = ()
+
+  let to_string l = match l with
+    | PVar i -> "M" ^ (string_of_int i)
+    | NVar i -> "!M" ^ (string_of_int i)
+
 end
 
 module ParBLit = struct
@@ -292,6 +319,11 @@ module ParBLit = struct
   let pp_bin_vars fmt qnum _ = Format.fprintf fmt "q%d\n" qnum
 
   let pp_int_vars fmt qnum _ = Format.fprintf fmt "p%d\n" qnum
+
+  let to_string l = match l with
+    | PVar i -> "P" ^ (string_of_int i)
+    | NVar i -> "!P" ^ (string_of_int i)
+
 end
 
 module MarBQ = Make(MakeLitOps(MarBLit))

@@ -106,6 +106,9 @@ module Make (Q : Qry) = struct
         incr timeouts
       else ();
 
+      printf "**** Syn_elem: ";
+      Array.iter (fun x -> let s = Q.D.to_string x in printf "%s" s) syn_elem;
+      printf "\n";
       printf "**** Updating query distribution\n%!";
       Updater.qd_update_in_place qdist queries query_cache syn_elem eta;
 

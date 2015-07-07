@@ -33,6 +33,8 @@ module type Db = sig
 
   val mk_info : string -> db -> db_info
 
+  val to_string : t -> string
+
   (* Random generation *)
   val gen     : unit -> t
   val gen_db  : int -> int -> db

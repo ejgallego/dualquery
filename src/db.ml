@@ -32,6 +32,8 @@ module type Db = sig
 
   val mk_info : string -> db -> db_info
 
+  val to_string : t -> string
+
   (* Random generation *)
   val gen     : unit -> t
   val gen_db  : int -> int -> db
@@ -54,8 +56,10 @@ module BinDb = struct
     db_elem     = Array.length db;
   }
 
+  let to_string x = if x then "1" else "0"
+
   let gen = Random.bool
-  let gen_db n m = Array.make n (Array.init m (fun _ -> gen ()))
+  let gen_db n m = Array.init n (fun _ -> (Array.init m (fun _ -> gen ())))
 
   let from_bin x = x
 end
@@ -73,6 +77,8 @@ module IntDb = struct
     db_bin_att  = Array.length db.(0);
     db_elem     = Array.length db;
   }
+
+  let to_string x = string_of_int x
 
   let gen () = Random.int 20
   let gen_db n m = Array.make n (Array.init m (fun _ -> gen ()))

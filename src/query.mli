@@ -29,6 +29,8 @@ module type Ops = sig
 
   (* Print to binary int variables *)
   val pp_int_vars : Format.formatter -> int -> query -> unit
+
+  val to_string : query -> string
 end
 
 module type Qry = sig
@@ -39,6 +41,7 @@ module type Qry = sig
   (* val gen_nquery : int -> db_schema -> query array *)
   val gen_n : int -> int -> query array
   val neg_n : query array -> query array
+  val remove_neg : query array -> query array
 
   val eval_row  : D.db_row -> query       -> float
   val eval_db   : D.db     -> query       -> float
@@ -52,6 +55,9 @@ module type Qry = sig
 
   (* Print to binary int variables *)
   val pp_int_vars : Format.formatter -> int -> query -> unit
+
+  val to_string : query -> string
+
 end
 
 (* At some point this should work:
@@ -86,6 +92,9 @@ module type BinLitOps = sig
 
     (* Print to binary int variables *)
     val pp_int_vars : Format.formatter -> int -> query -> unit
+
+    val to_string : literal -> string
+
 end
 
 module MakeLitOps (L : BinLitOps) : Ops

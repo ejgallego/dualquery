@@ -62,7 +62,9 @@ module Make (Q : Qry) = struct
     let q_res      = query_cache.(index)                    in
     let q_res_syn  = Q.eval_row syn_elem query              in
     let uf         = exp ((-. eta) *. (q_res_syn -. q_res)) in
-    (* Printf.printf  "Perfomance of query %d on the synthetic db: %f (%f, %f), update factor %G\n" index (q_res_syn -. q_res) q_res_syn q_res uf; *)
+    (* if q_res_syn -. q_res <> 0.0 then *)
+    (*   Printf.printf  "Perfomance of query %d on the synthetic db: %f (%f, %f), update factor %G\n" index (q_res_syn -. q_res) q_res_syn q_res uf *)
+    (* else (); *)
     uf *. qd_elem
 
   let qd_update_in_place qd queries query_cache syn_elem eta =
